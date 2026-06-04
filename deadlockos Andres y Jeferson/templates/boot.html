@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>DeadlockOS — Boot</title>
+<link rel="stylesheet" href="/static/css/global.css">
+<style>
+body { overflow:hidden; display:flex; flex-direction:column; justify-content:center; align-items:center; min-height:100vh; }
+
+/* Logo */
+.boot-logo {
+  font-family:var(--display); font-size:58px; font-weight:900; color:var(--blue2);
+  letter-spacing:.15em; position:relative;
+  text-shadow:0 0 30px rgba(0,170,255,.9),0 0 70px rgba(0,170,255,.5);
+  animation:logoPulse 2.2s ease-in-out infinite;
+}
+@keyframes logoPulse {
+  0%,100%{text-shadow:0 0 30px rgba(0,170,255,.9),0 0 70px rgba(0,170,255,.5)}
+  50%{text-shadow:0 0 55px rgba(0,200,255,1),0 0 110px rgba(0,170,255,.7),0 0 160px rgba(0,120,255,.3)}
+}
+.boot-logo .dim { color:rgba(0,200,255,.28); }
+
+/* Scan line que baja */
+.scan-line {
+  position:fixed; top:0; left:0; right:0; height:2px;
+  background:linear-gradient(90deg,transparent,rgba(0,200,255,.6),transparent);
+  animation:scanDown 3s linear infinite;
+  pointer-events:none; z-index:9999;
+}
+@keyframes scanDown { from{top:0} to{top:100vh} }
+
+.boot-sub { font-family:var(--mono); font-size:11px; color:var(--text2); letter-spacing:.3em; margin-top:6px; }
+.boot-ver { font-family:var(--mono); font-size:9px; color:var(--text3); margin-top:3px; }
+
+/* Log */
+.boot-log { margin-top:38px; width:560px; max-height:200px; overflow:hidden; display:flex; flex-direction:column; gap:1px; }
+.boot-line { font-family:var(--mono); font-size:10.5px; line-height:1.8; opacity:0; transform:translateX(-8px); animation:lineIn .12s ease forwards; display:flex; gap:10px; }
+@keyframes lineIn { to{opacity:1;transform:translateX(0)} }
+.bl-tag { flex-shrink:0; padding:0 5px; border-radius:1px; font-size:9px; font-weight:700; }
+.bl-ok   .bl-tag { background:rgba(0,255,153,.15); color:var(--green); }
+.bl-warn .bl-tag { background:rgba(255,187,0,.15);  color:var(--amber); }
+.bl-info .bl-tag { background:rgba(0,153,255,.15);  color:var(--blue2); }
+.bl-err  .bl-tag { background:rgba(255,68,102,.15); color:var(--red); }
+.bl-ok   .bl-msg { color:var(--text); }
+.bl-warn .bl-msg { color:var(--amber); }
+.bl-info .bl-msg { color:var(--blue2); }
+
+/* Progress */
+.bar-wrap { margin-top:24px; width:560px; }
+.bar-lbl  { font-family:var(--mono); font-size:9px; color:var(--text3); letter-spacing:.1em; margin-bottom:5px; display:flex; justify-content:space-between; }
+.bar-bg   { height:4px; background:rgba(0,153,255,.08); border-radius:2px; overflow:hidden; position:relative; }
+.bar-fill { height:100%; border-radius:2px; width:0%;
+  background:linear-gradient(90deg,var(--blue),var(--blue2),var(--teal));
+  transition:width .22s ease;
+  box-shadow:0 0 10px rgba(0,200,255,.7); }
+.bar-bg::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,255,255,.12) 50%,transparent 100%);
+  background-size:200% 100%;
+  animation:shimmer 1.5s linear infinite;
+}
+@keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
+
+/* Dots status */
+.boot-dots { display:flex; gap:8px; margin-top:16px; }
+.bdot { width:6px; height:6px; border-radius:50%; background:var(--border); transition:all .3s; }
+.bdot.on  { background:var(--green); box-shadow:0 0 8px var(--green); }
+.bdot.warn{ background:var(--amber); box-shadow:0 0 8px var(--amber); }
+</style>
+</head>
+<body>
+<div id="crt"></div>
+<div id="vignette"></div>
+<div class="bg-grid"></div>
+<div class="scan-line"></div>
+
+<div class="boot-logo glitch">DEADLOCK<span class="dim">OS</span></div>
+<div class="boot-sub">SISTEMA OPERATIVO EDUCATIVO</div>
+<div class="boot-ver">v1.0.0 — Kernel 4.2.1-dlk — Build 2024.05</div>
+
+<div class="boot-log" id="bootLog"></div>
+
+<div class="bar-wrap">
+  <div class="bar-lbl">
+    <span id="barLbl">INICIANDO SISTEMA...</span>
+    <span id="barPct">0%</span>
+  </div>
+  <div class="bar-bg"><div class="bar-fill" id="barFill"></div></div>
+</div>
+
+<div class="boot-dots" id="bootDots">
+  <div class="bdot" id="d0"></div><div class="bdot" id="d1"></div>
+  <div class="bdot" id="d2"></div><div class="bdot" id="d3"></div>
+  <div class="bdot" id="d4"></div><div class="bdot" id="d5"></div>
+  <div class="bdot" id="d6"></div><div class="bdot" id="d7"></div>
+</div>
+
+<script src="/static/js/shared.js"></script>
+<script>
+const LINES = [
+  {t:'info', m:'DeadlockOS Kernel 4.2.1 — Power On Self Test...'},
+  {t:'ok',   m:'[  0.001] Memoria RAM detectada: 8192 MB'},
+  {t:'ok',   m:'[  0.008] CPU: DeadlockCPU × 4 @ 3.2 GHz'},
+  {t:'ok',   m:'[  0.014] Controlador de interrupciones: ACTIVO'},
+  {t:'ok',   m:'[  0.023] Bus de sistema inicializado'},
+  {t:'ok',   m:'[  0.031] Gestor de procesos: CARGADO'},
+  {t:'ok',   m:'[  0.039] Planificador Round-Robin: ACTIVO'},
+  {t:'warn', m:'[  0.047] Detector de deadlock: MODO ESTRICTO'},
+  {t:'ok',   m:'[  0.056] Tabla de asignación de recursos: LISTA'},
+  {t:'ok',   m:'[  0.064] Grafo de asignación RAG: INICIALIZADO'},
+  {t:'ok',   m:'[  0.073] Módulo Coffman-1971: CARGADO'},
+  {t:'ok',   m:'[  0.081] Algoritmo DFS ciclos: VERIFICADO'},
+  {t:'info', m:'[  0.089] Montando sistema de archivos /edu ...'},
+  {t:'ok',   m:'[  0.097] /edu/intro       → montado'},
+  {t:'ok',   m:'[  0.104] /edu/recursos    → montado'},
+  {t:'ok',   m:'[  0.111] /edu/coffman     → montado'},
+  {t:'ok',   m:'[  0.119] /edu/simulador   → montado'},
+  {t:'ok',   m:'[  0.126] /edu/resumen     → montado'},
+  {t:'ok',   m:'[  0.134] Servidor HTTP :8000 → ACTIVO'},
+  {t:'info', m:'Sistema listo. Iniciando interfaz gráfica...'},
+];
+
+const DOTS_STEPS = [0,2,4,6,9,12,15,17];
+let idx = 0;
+
+function runBoot() {
+  const log  = document.getElementById('bootLog');
+  const bar  = document.getElementById('barFill');
+  const lbl  = document.getElementById('barLbl');
+  const pct  = document.getElementById('barPct');
+
+  if (idx < LINES.length) {
+    const l   = LINES[idx];
+    const div = document.createElement('div');
+    div.className = 'boot-line bl-' + l.t;
+    const tag = l.t === 'ok' ? ' OK ' : l.t === 'warn' ? 'WARN' : 'INFO';
+    div.innerHTML = `<span class="bl-tag">${tag}</span><span class="bl-msg">${l.m}</span>`;
+    log.appendChild(div);
+    if (log.children.length > 10) log.children[0].remove();
+
+    const p = Math.round((idx + 1) / LINES.length * 100);
+    bar.style.width = p + '%';
+    pct.textContent = p + '%';
+    lbl.textContent = p < 30 ? 'POST...' : p < 55 ? 'CARGANDO MÓDULOS...' : p < 80 ? 'MONTANDO /edu...' : 'INICIANDO GUI...';
+
+    // Encender dots
+    const di = DOTS_STEPS.findIndex((s, i) => idx >= s && (i === DOTS_STEPS.length-1 || idx < DOTS_STEPS[i+1]));
+    for (let i = 0; i <= di; i++) {
+      const d = document.getElementById('d'+i);
+      if (d) d.classList.add(LINES[idx].t === 'warn' && i === di ? 'warn' : 'on');
+    }
+
+    idx++;
+    const delay = idx < 5 ? 100 : idx < 13 ? 70 : 90;
+    setTimeout(runBoot, delay);
+  } else {
+    setTimeout(() => {
+      document.body.style.transition = 'opacity .5s';
+      document.body.style.opacity = '0';
+      setTimeout(() => window.location.href = '/login', 500);
+    }, 500);
+  }
+}
+
+setTimeout(runBoot, 400);
+</script>
+</body>
+</html>

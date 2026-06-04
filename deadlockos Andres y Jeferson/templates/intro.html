@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% block title %}DeadlockOS — Introducción{% endblock %}
+{% block sb_path %}/edu/intro{% endblock %}
+{% block sb_extra %}
+<div class="sb-item" style="margin-left:auto;color:var(--blue2)">Módulo 1 de 5</div>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+.hero-grid { display: grid; grid-template-columns: 1fr 300px; gap: 2rem; align-items: center; margin-bottom: 2.5rem; }
+.orbit-wrap { position: relative; width: 250px; height: 250px; margin: 0 auto; }
+.or { position: absolute; top:50%;left:50%; transform:translate(-50%,-50%); border-radius:50%; border:1px dashed; }
+.or1{width:100px;height:100px;border-color:rgba(0,136,255,.2);animation:spinR 7s linear infinite;}
+.or2{width:170px;height:170px;border-color:rgba(136,85,255,.15);animation:spinR 13s linear infinite reverse;}
+.or3{width:245px;height:245px;border-color:rgba(255,170,0,.12);animation:spinR 19s linear infinite;}
+@keyframes spinR{from{transform:translate(-50%,-50%)rotate(0)}to{transform:translate(-50%,-50%)rotate(360deg)}}
+.or-center { position:absolute;top:50%;left:50%;transform:translate(-50%,-50%); width:46px;height:46px;border-radius:50%;background:rgba(0,136,255,.12);border:1.5px solid var(--blue);display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 0 16px rgba(0,136,255,.3);z-index:5; }
+.or-proc { position:absolute;width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:9px;font-weight:700;border:1.5px solid;animation:fp 2s ease-in-out infinite; }
+@keyframes fp{0%,100%{opacity:.65}50%{opacity:1}}
+.dl-banner{background:rgba(255,51,85,.07);border:1px solid rgba(255,51,85,.28);border-radius:2px;padding:8px 12px;font-family:var(--mono);font-size:10px;color:var(--red);display:flex;align-items:center;gap:7px;margin-bottom:14px;}
+.concept-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:.9rem;margin-bottom:2rem;}
+.c-card{background:rgba(0,136,255,.03);border:1px solid var(--border);border-radius:3px;padding:12px;transition:all .25s;}
+.c-card:hover{border-color:var(--border2);transform:translateY(-2px);}
+.c-icon{font-size:20px;margin-bottom:7px;}
+.c-title{font-family:var(--mono);font-size:10px;color:var(--blue2);margin-bottom:5px;letter-spacing:.06em;}
+.c-desc{font-size:11px;color:var(--text2);line-height:1.6;}
+/* Lifecycle */
+.lc-box{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:3px;padding:14px;}
+.lc-lbl{font-family:var(--mono);font-size:9px;color:var(--text3);margin-bottom:8px;letter-spacing:.1em;}
+.lc-row{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;overflow-x:auto;gap:0;padding:4px 0;}
+.lc-st{text-align:center;padding:8px 12px;border-radius:3px;border:1.5px solid var(--border);min-width:70px;cursor:pointer;transition:all .25s;flex-shrink:0;}
+.lc-st:hover{transform:translateY(-3px);}
+.lc-ic{font-size:16px;}
+.lc-lb{font-family:var(--mono);font-size:8px;color:var(--text2);margin-top:3px;}
+.lc-arr{font-size:14px;color:var(--text3);padding:0 4px;flex-shrink:0;}
+#lc-desc{font-family:var(--mono);font-size:10px;color:var(--text3);text-align:center;padding:7px 0 2px;min-height:24px;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="sec-tag">// módulo 01 — introducción</div>
+  <div class="hero-grid">
+    <div>
+      <h1 class="sec-title">El problema del<br><span class="hi">Bloqueo Mutuo</span></h1>
+      <p class="sec-sub">Un <strong>deadlock</strong> ocurre cuando un conjunto de procesos queda en espera indefinida: cada proceso retiene recursos que otro necesita. El sistema se paraliza por completo sin posibilidad de avanzar.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:1.5rem">
+        <span style="padding:4px 12px;border-radius:2px;border:1px solid rgba(0,136,255,.25);font-family:var(--mono);font-size:9px;color:var(--blue2)">⚙️ Múltiples procesos</span>
+        <span style="padding:4px 12px;border-radius:2px;border:1px solid rgba(0,221,187,.2);font-family:var(--mono);font-size:9px;color:var(--teal)">🗄️ Recursos compartidos</span>
+        <span style="padding:4px 12px;border-radius:2px;border:1px solid rgba(255,51,85,.25);font-family:var(--mono);font-size:9px;color:var(--red)">🔄 Espera circular</span>
+      </div>
+    </div>
+    <div>
+      <div class="orbit-wrap">
+        <div class="or or1"></div><div class="or or2"></div><div class="or or3"></div>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none" viewBox="0 0 250 250">
+          <defs><marker id="ah" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto"><path d="M0,0 L5,2.5 L0,5 Z" fill="rgba(255,51,85,.4)"/></marker></defs>
+          <line x1="125" y1="28" x2="218" y2="125" stroke="rgba(255,51,85,.16)" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#ah)"/>
+          <line x1="218" y1="125" x2="125" y2="220" stroke="rgba(255,51,85,.16)" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#ah)"/>
+          <line x1="125" y1="220" x2="32" y2="125" stroke="rgba(255,51,85,.16)" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#ah)"/>
+          <line x1="32" y1="125" x2="125" y2="28" stroke="rgba(255,51,85,.16)" stroke-width="1.2" stroke-dasharray="3,3" marker-end="url(#ah)"/>
+        </svg>
+        <div class="or-center">💀</div>
+        <div class="or-proc" style="top:7%;left:36%;background:rgba(0,136,255,.12);border-color:#0088ff;color:#0088ff">P1</div>
+        <div class="or-proc" style="top:36%;right:4%;background:rgba(136,85,255,.1);border-color:#8855ff;color:#8855ff">P2</div>
+        <div class="or-proc" style="bottom:7%;left:36%;background:rgba(255,170,0,.1);border-color:#ffaa00;color:#ffaa00">P3</div>
+        <div class="or-proc" style="top:36%;left:4%;background:rgba(255,51,85,.1);border-color:#ff3355;color:#ff3355">P4</div>
+        <div style="position:absolute;bottom:8px;right:6px;background:rgba(255,51,51,.08);border:1px solid rgba(255,51,51,.3);border-radius:2px;padding:4px 9px;font-family:var(--mono);font-size:9px;color:var(--red);animation:pls 2s ease-in-out infinite">⚠ DEADLOCK</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Concept cards (rendered from API) -->
+  <div class="concept-grid" id="conceptCards">
+    <div class="c-card fade-up">
+      <div class="c-icon">⚙️</div>
+      <div class="c-title">PROCESO</div>
+      <div class="c-desc">Programa en ejecución con espacio de memoria propio. Estados: <span style="color:var(--green)">ejecutando</span>, <span style="color:var(--amber)">listo</span>, <span style="color:var(--red)">bloqueado</span>.</div>
+    </div>
+    <div class="c-card fade-up" style="animation-delay:.1s">
+      <div class="c-icon">🗄️</div>
+      <div class="c-title">RECURSO</div>
+      <div class="c-desc">CPU, RAM, archivos, dispositivos I/O, semáforos. Clasificados en <em>apropiables</em> y <em>no apropiables</em> según si pueden retirarse forzosamente.</div>
+    </div>
+    <div class="c-card fade-up" style="animation-delay:.2s">
+      <div class="c-icon">🔒</div>
+      <div class="c-title">DEADLOCK</div>
+      <div class="c-desc">Estado permanente de espera mutua. Requiere las <span style="color:var(--red)">4 condiciones de Coffman</span> activas simultáneamente para producirse.</div>
+    </div>
+  </div>
+
+  <!-- Lifecycle -->
+  <div class="lc-box fade-up" style="animation-delay:.3s">
+    <div class="lc-lbl">// CICLO DE VIDA DE UN PROCESO — haz clic en un estado para ver su descripción</div>
+    <div class="lc-row">
+      <div class="lc-st" id="ls0" onclick="lcClick(0)"><div class="lc-ic">🆕</div><div class="lc-lb">Nuevo</div></div>
+      <div class="lc-arr">→</div>
+      <div class="lc-st" id="ls1" onclick="lcClick(1)"><div class="lc-ic">✅</div><div class="lc-lb">Listo</div></div>
+      <div class="lc-arr">⇌</div>
+      <div class="lc-st" id="ls2" onclick="lcClick(2)"><div class="lc-ic">▶️</div><div class="lc-lb">Ejecutando</div></div>
+      <div class="lc-arr">→</div>
+      <div class="lc-st" id="ls3" onclick="lcClick(3)"><div class="lc-ic">🔒</div><div class="lc-lb">Bloqueado</div></div>
+      <div class="lc-arr">→</div>
+      <div class="lc-st" id="ls4" onclick="lcClick(4)"><div class="lc-ic">🏁</div><div class="lc-lb">Terminado</div></div>
+    </div>
+    <div id="lc-desc">→ Haz clic en un estado para ver su descripción detallada</div>
+    <div style="text-align:center;padding-top:8px">
+      <button class="btn btn-primary" onclick="animLC()" style="font-size:10px;padding:6px 16px">▶ Animar ciclo completo</button>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pag-bar">
+    <div class="pag-info">Módulo <span>1</span> de <span>5</span></div>
+    <div class="pag-btns">
+      <a href="/desktop" class="btn" style="border-color:var(--border2);color:var(--text2)">← Escritorio</a>
+      <a href="/recursos" class="btn btn-primary">Siguiente: Recursos →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+requireAuth();
+const lcColors = ['#0088ff','#00ff88','#00ddbb','#ff3355','#5a8ab0'];
+const lcDescs  = [
+  '🆕 NUEVO: El proceso fue creado. Se cargan recursos iniciales antes de entrar a la cola.',
+  '✅ LISTO: Tiene todo excepto la CPU. Espera en la cola su turno de ejecución.',
+  '▶ EJECUTANDO: Tiene la CPU y corre instrucciones. Puede ir a Listo (preempción) o Bloqueado.',
+  '🔒 BLOQUEADO: Espera un recurso externo. No avanza aunque haya CPU libre — clave para deadlocks.',
+  '🏁 TERMINADO: Completó su ejecución. Todos sus recursos son liberados.'
+];
+function lcClick(i) {
+  for(let j=0;j<5;j++){
+    const el=document.getElementById('ls'+j); if(!el) continue;
+    el.style.borderColor=j===i?lcColors[i]:'var(--border)';
+    el.style.background=j===i?'rgba(0,136,255,.1)':'transparent';
+  }
+  const d=document.getElementById('lc-desc');
+  d.style.color=lcColors[i]; d.textContent=lcDescs[i];
+}
+let lcT=null;
+function animLC(){
+  clearInterval(lcT); const seq=[0,1,2,3,2,1,4]; let i=0;
+  const s=()=>{ if(i<seq.length){lcClick(seq[i++]);}else clearInterval(lcT); };
+  s(); lcT=setInterval(s,900);
+}
+</script>
+{% endblock %}
