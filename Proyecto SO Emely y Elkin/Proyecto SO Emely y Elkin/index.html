@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OVA de Planificación de Procesos con Backend MVC en Python y MySQL">
+    <title>OVA: Planificación de CPU | Simulación Comparativa & CRUD</title>
+    
+    <!-- Fuentes Google -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;600&family=Outfit:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="css/responsive.css">
+</head>
+<body>
+
+<div class="app-container">
+    <!-- BARRA LATERAL (SIDEBAR) -->
+    <aside class="sidebar">
+        <div class="sidebar-logo">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+            OS SCHEDULER
+        </div>
+        
+        <!-- Indicador de conexión al Servidor Backend -->
+        <div id="db-status-badge" class="badge badge-danger mb-3 text-center" style="display: block; width: 100%; font-size: 0.75rem; padding: 6px;">
+            Servidor: Desconectado
+        </div>
+
+        <nav>
+            <ul class="nav-menu">
+                <li class="nav-item"><a href="#module-1" class="nav-link active" data-target="module-1">1. Introducción</a></li>
+                <li class="nav-item"><a href="#module-2" class="nav-link" data-target="module-2">2. Fundamentos</a></li>
+                <li class="nav-item"><a href="#module-3" class="nav-link" data-target="module-3">3. Características</a></li>
+                <li class="nav-item"><a href="#module-4" class="nav-link" data-target="module-4">4. Optimización</a></li>
+                <li class="nav-item"><a href="#module-5" class="nav-link" data-target="module-5">5. Algoritmos</a></li>
+                <li class="nav-item"><a href="#module-6" class="nav-link" data-target="module-6">6. Laboratorio</a></li>
+                <li class="nav-item"><a href="#module-7" class="nav-link" data-target="module-7">7. Comparativa</a></li>
+                <li class="nav-item"><a href="#module-db" class="nav-link" data-target="module-db">8. Historial (MySQL)</a></li>
+                <li class="nav-item"><a href="#module-8" class="nav-link" data-target="module-8">9. Evaluación</a></li>
+                <li class="nav-item"><a href="#module-9" class="nav-link" data-target="module-9">10. Conclusiones</a></li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- CONTENIDO PRINCIPAL -->
+    <main class="main-content">
+
+        <!-- Módulo 1: Introducción -->
+        <section id="module-1" class="module-section active">
+            <div class="module-header">
+                <h1>1. Introducción a la Planificación</h1>
+                <p class="text-muted">Conoce el problema fundamental de la gestión de CPU.</p>
+            </div>
+            <div class="card">
+                <h2 class="card-title">¿Qué es la planificación de procesos?</h2>
+                <div id="intro-content">
+                    <p>La planificación de procesos es una función fundamental de los sistemas operativos multiprogramados...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Módulo 2: Fundamentos -->
+        <section id="module-2" class="module-section">
+            <div class="module-header">
+                <h1>2. Fundamentos de Planificación</h1>
+                <p class="text-muted">Conceptos, estados y objetivos clave.</p>
+            </div>
+            <div class="card">
+                <h2 class="card-title">El Scheduler y Objetivos</h2>
+                <div id="fundamentals-content"></div>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3 class="card-title">Estados de los Procesos</h3>
+                    <div id="states-content"></div>
+                </div>
+                <div class="card">
+                    <h3 class="card-title">Criterios de Rendimiento</h3>
+                    <div id="criteria-content"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Módulo 3: Características -->
+        <section id="module-3" class="module-section">
+            <div class="module-header">
+                <h1>3. Características y Métricas</h1>
+                <p class="text-muted">Análisis profundo de tiempos y throughput.</p>
+            </div>
+            <div class="grid-3" id="metrics-cards">
+                <!-- Se llenará con cards dinámicas -->
+            </div>
+        </section>
+
+        <!-- Módulo 4: Optimización -->
+        <section id="module-4" class="module-section">
+            <div class="module-header">
+                <h1>4. Técnicas de Optimización</h1>
+                <p class="text-muted">Cómo mejorar el rendimiento del sistema.</p>
+            </div>
+            <div class="card" id="optimization-content"></div>
+        </section>
+
+        <!-- Módulo 5: Algoritmos -->
+        <section id="module-5" class="module-section">
+            <div class="module-header">
+                <h1>5. Algoritmos de Planificación</h1>
+                <p class="text-muted">Estudio de los algoritmos clásicos y modernos.</p>
+            </div>
+            <div id="algorithms-list">
+                <!-- Acordeón o Tabs con FCFS, SJF, RR, Priority, MLQ -->
+            </div>
+        </section>
+
+        <!-- Módulo 6: Laboratorio (Simulador) -->
+        <section id="module-6" class="module-section">
+            <div class="module-header">
+                <h1>6. Laboratorio Interactivo</h1>
+                <p class="text-muted">Simula y compara los algoritmos de planificación en tiempo real.</p>
+            </div>
+            
+            <div class="grid-2 mb-3">
+                <div class="card">
+                    <h2 class="card-title">Configuración del Experimento</h2>
+                    <div class="form-group">
+                        <label class="form-label">Nombre del Experimento</label>
+                        <input type="text" id="exp-name-input" class="form-control" placeholder="Escribe un nombre para identificar el experimento">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Carga de Trabajo (Escenario)</label>
+                        <select id="scenario-select" class="form-control">
+                            <option value="A">Escenario A: Carga Baja (5 procesos predeterminados)</option>
+                            <option value="B">Escenario B: Carga Media (20 procesos predeterminados)</option>
+                            <option value="C">Escenario C: Carga Alta (100 procesos aleatorios)</option>
+                            <option value="D">Escenario D: Carga Extrema (500 procesos aleatorios)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Quantum de Round Robin</label>
+                        <input type="number" id="quantum-input" class="form-control" value="2" min="1">
+                    </div>
+                    <div class="mt-2" style="display:flex; gap:10px;">
+                        <button id="btn-run" class="btn btn-primary">Ejecutar Comparativa</button>
+                        <button id="btn-reset" class="btn btn-secondary">Reiniciar</button>
+                    </div>
+                </div>
+                
+                <div class="card">
+                    <h2 class="card-title">Estado de Ejecución y MySQL</h2>
+                    <div id="execution-status">
+                        <p class="text-muted">Esperando inicio...</p>
+                    </div>
+                    <div id="connection-warning" class="mt-2 text-warning" style="display: none; font-size: 0.85rem;">
+                        ⚠️ El servidor de Python o MySQL no está activo. Se usará el simulador local JS (sin persistencia ni comparación avanzada).
+                    </div>
+                </div>
+            </div>
+
+            <!-- Gantt Chart View -->
+            <div class="card">
+                <div class="card-title">
+                    <span>Diagrama de Gantt</span>
+                    <div>
+                        <label for="gantt-algo-select" style="font-size: 0.85rem; color: var(--text-secondary); margin-right: 5px;">Algoritmo:</label>
+                        <select id="gantt-algo-select" class="form-control" style="display: inline-block; width: auto; padding: 4px 8px; font-size: 0.85rem;">
+                            <option value="FCFS">FCFS</option>
+                            <option value="SJF">SJF (No Expropiativo)</option>
+                            <option value="RR">Round Robin</option>
+                            <option value="PRIORITY">Prioridad</option>
+                            <option value="MLQ">MLQ (Colas Multinivel)</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="gantt-chart-container" style="overflow-x: auto; white-space: nowrap; padding: 20px 0; min-height: 100px; background: rgba(15, 23, 42, 0.4); border-radius: var(--radius-sm);">
+                    <!-- Barras generadas por JS -->
+                </div>
+            </div>
+            
+            <!-- Tabla de Procesos por Algoritmo -->
+            <div class="card mt-3">
+                <div class="card-title">
+                    <span>Procesos Detallados</span>
+                    <div>
+                        <label for="table-algo-select" style="font-size: 0.85rem; color: var(--text-secondary); margin-right: 5px;">Algoritmo:</label>
+                        <select id="table-algo-select" class="form-control" style="display: inline-block; width: auto; padding: 4px 8px; font-size: 0.85rem;">
+                            <option value="FCFS">FCFS</option>
+                            <option value="SJF">SJF</option>
+                            <option value="RR">Round Robin</option>
+                            <option value="PRIORITY">Prioridad</option>
+                            <option value="MLQ">MLQ</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table id="process-table">
+                        <thead>
+                            <tr>
+                                <th>PID</th>
+                                <th>Llegada</th>
+                                <th>Ráfaga</th>
+                                <th>Prioridad</th>
+                                <th>Fin</th>
+                                <th>Retorno (T)</th>
+                                <th>Espera (W)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Llenado por JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- Módulo 7: Comparativa de Rendimiento -->
+        <section id="module-7" class="module-section">
+            <div class="module-header">
+                <h1>7. Comparativa de Algoritmos</h1>
+                <p class="text-muted">Análisis estadístico y selección del algoritmo óptimo para la carga de trabajo.</p>
+            </div>
+            
+            <!-- Tarjetas de Ganadores (Análisis Comparativo) -->
+            <div class="comparison-grid" id="comparison-highlights">
+                <!-- Se inyecta dinámicamente -->
+            </div>
+
+            <!-- Gráficas Comparativas Side-by-Side -->
+            <div class="grid-2">
+                <div class="card">
+                    <h2 class="card-title">Tiempos Promedio por Algoritmo</h2>
+                    <div style="position: relative; height:300px;">
+                        <canvas id="chart-times"></canvas>
+                    </div>
+                </div>
+                <div class="card">
+                    <h2 class="card-title">Eficiencia (Uso CPU % & Rendimiento)</h2>
+                    <div style="position: relative; height:300px;">
+                        <canvas id="chart-performance"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de Resumen Comparativo -->
+            <div class="card mt-3">
+                <h2 class="card-title">Resumen de Métricas de Planificación</h2>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Algoritmo</th>
+                                <th>Espera Promedio</th>
+                                <th>Retorno Promedio</th>
+                                <th>Throughput (Proc/Seg)</th>
+                                <th>Utilización de CPU</th>
+                            </tr>
+                        </thead>
+                        <tbody id="comparison-table-body">
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">Ejecuta una simulación en el laboratorio para ver los resultados.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- Módulo 8: Historial y CRUD de Base de Datos -->
+        <section id="module-db" class="module-section">
+            <div class="module-header">
+                <h1>8. Historial de Experimentos (MySQL CRUD)</h1>
+                <p class="text-muted">Gestión de experimentos guardados en el backend a través de la base de datos.</p>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span>Experimentos Registrados</span>
+                    <button id="btn-refresh-history" class="btn btn-secondary btn-sm" style="padding: 6px 12px; font-size: 0.8rem;">Refrescar</button>
+                </div>
+                <div id="history-list-container">
+                    <p class="text-muted text-center py-4">Verificando conexión al servidor...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Módulo 9: Evaluación -->
+        <section id="module-8" class="module-section">
+            <div class="module-header">
+                <h1>9. Evaluación Interactiva</h1>
+                <p class="text-muted">Pon a prueba tus conocimientos (20 preguntas).</p>
+            </div>
+            <div class="card" id="quiz-container">
+                <button id="btn-start-quiz" class="btn btn-primary">Comenzar Evaluación</button>
+            </div>
+        </section>
+
+        <!-- Módulo 10: Conclusiones -->
+        <section id="module-9" class="module-section">
+            <div class="module-header">
+                <h1>10. Conclusiones y Bibliografía</h1>
+                <p class="text-muted">Cierre académico del OVA.</p>
+            </div>
+            <div class="card">
+                <h2 class="card-title">Conclusiones</h2>
+                <ul id="conclusions-list" style="margin-left: 20px; color: var(--text-secondary);"></ul>
+            </div>
+            <div class="card mt-3">
+                <h2 class="card-title">Recomendaciones</h2>
+                <ul id="recommendations-list" style="margin-left: 20px; color: var(--text-secondary);"></ul>
+            </div>
+            <div class="card mt-3">
+                <h2 class="card-title">Bibliografía (APA 7)</h2>
+                <div id="bibliography-content"></div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- Footer Institucional -->
+<footer class="app-footer">
+    <p><strong>OVA: Características y Optimización de la Planificación de Procesos</strong></p>
+    <p>Desarrollado por: <strong>Emely Yanieth Lozano Baez</strong> y <strong>Elkin Alonso Torres Sandoval</strong> &copy; 2026</p>
+</footer>
+
+<!-- Scripts (CDN & Locales) -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="js/scenarios.js"></script> <!-- Carga Directa (Fix CORS) -->
+<script src="js/data-content.js"></script>
+<script src="js/algorithms.js"></script> <!-- Fallback Local -->
+<script src="js/api.js"></script> <!-- Conexión Backend REST -->
+<script src="js/simulator.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
