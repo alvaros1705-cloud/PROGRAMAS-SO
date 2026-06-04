@@ -1,0 +1,1651 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KRAT OS — Simulador de Sistema Embebido</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f1117;
+  --bg2:#161b27;
+  --bg3:#1e2535;
+  --card:#1a2030;
+  --card2:#212840;
+  --border:#2a3350;
+  --accent:#7c6aff;
+  --accent2:#ff6b8a;
+  --accent3:#ffb86c;
+  --accent4:#50fa7b;
+  --accent5:#8be9fd;
+  --text:#e8eaf6;
+  --text2:#8892b0;
+  --text3:#4a5568;
+  --sidebar-w:220px;
+  --header-h:60px;
+  --radius:14px;
+  --radius-sm:8px;
+  --font-mono:'JetBrains Mono',monospace;
+  --font-ui:'Syne',sans-serif;
+}
+html,body{height:100%;overflow:hidden}
+body{font-family:var(--font-ui);background:var(--bg);color:var(--text);display:flex;flex-direction:column}
+
+/* LAYOUT */
+#app{display:flex;height:100vh;overflow:hidden}
+#sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:0;z-index:10;transition:width .3s}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#header{height:var(--header-h);min-height:var(--header-h);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 24px;gap:16px}
+#content{flex:1;overflow:auto;padding:24px}
+
+/* SIDEBAR */
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.logo-icon{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:#fff;font-family:var(--font-mono);letter-spacing:-1px;flex-shrink:0}
+.logo-text{font-size:15px;font-weight:800;letter-spacing:.05em;color:var(--text)}
+.logo-sub{font-size:9px;color:var(--text2);font-family:var(--font-mono);letter-spacing:.15em;margin-top:1px}
+
+.nav-section{padding:12px 12px 4px;flex:1}
+.nav-label{font-size:9px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;padding:0 8px;margin-bottom:6px;font-family:var(--font-mono)}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--radius-sm);cursor:pointer;transition:all .2s;color:var(--text2);font-size:13px;font-weight:600;letter-spacing:.01em;margin-bottom:2px;position:relative;user-select:none}
+.nav-item:hover{background:var(--bg3);color:var(--text)}
+.nav-item.active{background:var(--accent);color:#fff}
+.nav-item .nav-icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.nav-badge{margin-left:auto;background:var(--accent2);color:#fff;font-size:9px;padding:2px 6px;border-radius:20px;font-family:var(--font-mono);font-weight:700}
+
+.sidebar-footer{padding:14px 12px;border-top:1px solid var(--border)}
+.sys-status{display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border-radius:var(--radius-sm)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--accent4);box-shadow:0 0 8px var(--accent4);flex-shrink:0;animation:pulse-dot 2s infinite}
+@keyframes pulse-dot{0%,100%{opacity:1}50%{opacity:.5}}
+.status-info{flex:1}
+.status-name{font-size:11px;font-weight:700;color:var(--text)}
+.status-sub{font-size:9px;color:var(--text2);font-family:var(--font-mono)}
+
+/* HEADER */
+.header-title{font-size:16px;font-weight:800;color:var(--text);flex:1}
+.header-title span{color:var(--accent)}
+.header-clock{font-family:var(--font-mono);font-size:13px;color:var(--text2);background:var(--bg3);padding:6px 12px;border-radius:var(--radius-sm);border:1px solid var(--border)}
+.header-badge{background:var(--bg3);border:1px solid var(--border);padding:5px 10px;border-radius:var(--radius-sm);font-size:11px;font-family:var(--font-mono);color:var(--accent4);display:flex;align-items:center;gap:6px}
+
+/* PANELS */
+.panel{display:none;animation:fadeIn .3s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;transition:border-color .2s}
+.card:hover{border-color:var(--border)}
+.card-title{font-size:10px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;font-family:var(--font-mono);margin-bottom:6px}
+.card-value{font-size:28px;font-weight:800;color:var(--text);line-height:1;margin-bottom:4px;font-family:var(--font-mono)}
+.card-sub{font-size:11px;color:var(--text2)}
+.card-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+
+/* GRID UTILITIES */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.flex{display:flex}
+.flex-col{flex-direction:column}
+.items-center{align-items:center}
+.justify-between{justify-content:space-between}
+.gap8{gap:8px}
+.gap12{gap:12px}
+.gap16{gap:16px}
+.gap20{gap:20px}
+.mt8{margin-top:8px}
+.mt12{margin-top:12px}
+.mt16{margin-top:16px}
+.mt20{margin-top:20px}
+.mb8{margin-bottom:8px}
+.mb12{margin-bottom:12px}
+.mb16{margin-bottom:16px}
+.w100{width:100%}
+
+/* PROGRESS BAR */
+.progress-wrap{background:var(--bg3);border-radius:4px;height:6px;overflow:hidden;margin-top:8px}
+.progress-bar{height:100%;border-radius:4px;transition:width .5s ease}
+.bar-accent{background:linear-gradient(90deg,var(--accent),#a78bfa)}
+.bar-red{background:linear-gradient(90deg,var(--accent2),#ff9a9e)}
+.bar-green{background:linear-gradient(90deg,var(--accent4),#69ff87)}
+.bar-orange{background:linear-gradient(90deg,var(--accent3),#ffd389)}
+
+/* PAGE HEADER */
+.page-header{margin-bottom:20px}
+.page-header h1{font-size:22px;font-weight:800;color:var(--text);line-height:1.2}
+.page-header p{font-size:12px;color:var(--text2);margin-top:4px;font-family:var(--font-mono)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:var(--radius-sm);border:none;cursor:pointer;font-size:12px;font-weight:700;font-family:var(--font-ui);letter-spacing:.03em;transition:all .2s;outline:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:hover{background:#6b5ce7;transform:translateY(-1px)}
+.btn-danger{background:rgba(255,107,138,.15);color:var(--accent2);border:1px solid rgba(255,107,138,.3)}
+.btn-danger:hover{background:rgba(255,107,138,.25)}
+.btn-ghost{background:var(--bg3);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{color:var(--text);border-color:var(--accent)}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-xs{padding:3px 8px;font-size:10px}
+.btn-success{background:rgba(80,250,123,.15);color:var(--accent4);border:1px solid rgba(80,250,123,.3)}
+.btn-success:hover{background:rgba(80,250,123,.25)}
+
+/* INPUTS */
+.input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;color:var(--text);font-size:13px;font-family:var(--font-mono);outline:none;transition:border-color .2s;width:100%}
+.input:focus{border-color:var(--accent)}
+.input::placeholder{color:var(--text3)}
+textarea.input{resize:vertical;min-height:80px;font-size:12px;line-height:1.6}
+.input-group{display:flex;gap:8px;align-items:center}
+
+/* DASHBOARD */
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px;display:flex;align-items:flex-start;gap:12px}
+.stat-card .card-icon.c1{background:rgba(124,106,255,.15)}
+.stat-card .card-icon.c2{background:rgba(255,107,138,.15)}
+.stat-card .card-icon.c3{background:rgba(255,184,108,.15)}
+.stat-card .card-icon.c4{background:rgba(80,250,123,.15)}
+.stat-info{flex:1}
+.stat-label{font-size:10px;color:var(--text3);font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;margin-bottom:4px}
+.stat-val{font-size:22px;font-weight:800;font-family:var(--font-mono);line-height:1}
+.stat-change{font-size:10px;color:var(--text2);margin-top:3px;font-family:var(--font-mono)}
+
+.dash-main{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-bottom:16px}
+.ram-visual{position:relative}
+.donut-wrap{display:flex;justify-content:center;align-items:center;padding:20px 0}
+.donut-center{position:absolute;text-align:center}
+.donut-pct{font-size:28px;font-weight:800;font-family:var(--font-mono);color:var(--text);line-height:1}
+.donut-lbl{font-size:10px;color:var(--text2);font-family:var(--font-mono);margin-top:2px}
+.legend-item{display:flex;align-items:center;gap:8px;padding:6px 0}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.legend-name{font-size:12px;color:var(--text2);flex:1}
+.legend-val{font-size:12px;font-family:var(--font-mono);color:var(--text);font-weight:600}
+.legend-bar-wrap{background:var(--bg3);height:3px;border-radius:2px;flex:1;margin:0 8px}
+.legend-bar{height:100%;border-radius:2px}
+
+.quicklinks{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.qlink{background:var(--card2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;cursor:pointer;transition:all .2s;display:flex;flex-direction:column;gap:8px}
+.qlink:hover{border-color:var(--accent);transform:translateY(-2px)}
+.qlink-icon{font-size:22px}
+.qlink-name{font-size:12px;font-weight:700;color:var(--text)}
+.qlink-desc{font-size:10px;color:var(--text2);line-height:1.4}
+
+.activity-log{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.log-item{display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.log-item:last-child{border-bottom:none}
+.log-dot{width:6px;height:6px;border-radius:50%;margin-top:5px;flex-shrink:0}
+.log-msg{font-size:12px;color:var(--text2);flex:1;line-height:1.4}
+.log-time{font-size:10px;font-family:var(--font-mono);color:var(--text3);white-space:nowrap}
+
+/* RAM DISK MODULE */
+.ram-toolbar{display:flex;gap:8px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.ram-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.ram-stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;text-align:center}
+.ram-stat-val{font-size:18px;font-weight:800;font-family:var(--font-mono);color:var(--text);line-height:1}
+.ram-stat-lbl{font-size:10px;color:var(--text2);font-family:var(--font-mono);margin-top:4px}
+
+.file-list{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.file-list-header{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 100px;padding:10px 16px;background:var(--bg3);font-size:10px;color:var(--text3);font-family:var(--font-mono);letter-spacing:.1em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.file-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 100px;padding:11px 16px;border-bottom:1px solid var(--border);align-items:center;transition:background .15s;cursor:pointer}
+.file-row:last-child{border-bottom:none}
+.file-row:hover{background:var(--bg3)}
+.file-name{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--text)}
+.file-icon{font-size:14px}
+.file-cell{font-size:11px;color:var(--text2);font-family:var(--font-mono)}
+.file-actions{display:flex;gap:4px}
+.empty-state{padding:40px;text-align:center}
+.empty-icon{font-size:40px;margin-bottom:12px;opacity:.3}
+.empty-text{font-size:14px;color:var(--text3)}
+
+/* MODAL */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(4px);z-index:100;display:flex;align-items:center;justify-content:center;animation:fadeIn .2s}
+.modal{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;width:500px;max-width:90vw;max-height:80vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.modal-title{font-size:15px;font-weight:800;color:var(--text)}
+.modal-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:18px;padding:2px 6px;border-radius:4px;transition:color .2s}
+.modal-close:hover{color:var(--text)}
+.form-group{margin-bottom:14px}
+.form-label{font-size:11px;color:var(--text2);font-family:var(--font-mono);margin-bottom:6px;display:block;letter-spacing:.08em}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border)}
+
+/* CLOCK MODULE */
+.clock-display{text-align:center;padding:30px 20px}
+.clock-time{font-size:64px;font-weight:800;font-family:var(--font-mono);color:var(--text);letter-spacing:-.02em;line-height:1}
+.clock-date{font-size:16px;color:var(--text2);font-family:var(--font-mono);margin-top:8px}
+.clock-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}
+.clock-widget{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px}
+.widget-title{font-size:11px;color:var(--text3);font-family:var(--font-mono);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.chrono-display{font-size:36px;font-weight:800;font-family:var(--font-mono);color:var(--text);text-align:center;padding:10px 0}
+.chrono-controls{display:flex;gap:8px;justify-content:center;margin-top:10px}
+.timer-input-wrap{display:flex;gap:8px;margin-bottom:12px}
+.timer-input{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px;color:var(--text);font-size:20px;font-family:var(--font-mono);text-align:center;width:60px;outline:none}
+.timer-input:focus{border-color:var(--accent)}
+.timer-label{font-size:10px;color:var(--text3);font-family:var(--font-mono);text-align:center;display:block;margin-top:3px}
+.timer-display{font-size:36px;font-weight:800;font-family:var(--font-mono);text-align:center;padding:10px 0;transition:color .3s}
+.uptime-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
+.uptime-unit{background:var(--bg3);border-radius:var(--radius-sm);padding:10px;text-align:center}
+.uptime-val{font-size:22px;font-weight:800;font-family:var(--font-mono);color:var(--accent)}
+.uptime-lbl{font-size:9px;color:var(--text3);font-family:var(--font-mono);margin-top:3px}
+
+.event-log{list-style:none;max-height:200px;overflow-y:auto}
+.event-item{display:flex;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:11px}
+.event-item:last-child{border-bottom:none}
+.event-time{color:var(--accent);font-family:var(--font-mono);white-space:nowrap}
+.event-msg{color:var(--text2)}
+
+/* TERMINAL */
+.terminal-wrap{background:#0a0d14;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;height:calc(100vh - 160px)}
+.term-header{background:var(--bg3);padding:10px 16px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.term-dot{width:10px;height:10px;border-radius:50%}
+.term-dot.red{background:#ff5f57}
+.term-dot.yellow{background:#ffbd2e}
+.term-dot.green{background:#28c840}
+.term-title{font-size:12px;color:var(--text2);font-family:var(--font-mono);margin:0 auto}
+.term-body{padding:16px;height:calc(100% - 44px);display:flex;flex-direction:column;overflow:hidden}
+.term-output{flex:1;overflow-y:auto;font-family:var(--font-mono);font-size:12px;line-height:1.7;margin-bottom:12px}
+.term-output::-webkit-scrollbar{width:4px}
+.term-output::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.term-line{margin-bottom:2px;word-break:break-all}
+.term-prompt{color:var(--accent)}
+.term-cmd{color:var(--text)}
+.term-out{color:var(--text2)}
+.term-err{color:var(--accent2)}
+.term-ok{color:var(--accent4)}
+.term-info{color:var(--accent5)}
+.term-warn{color:var(--accent3)}
+.term-input-wrap{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px}
+.term-prompt-label{color:var(--accent);font-family:var(--font-mono);font-size:12px;white-space:nowrap}
+.term-input{background:none;border:none;outline:none;color:var(--text);font-family:var(--font-mono);font-size:12px;flex:1;caret-color:var(--accent)}
+
+/* GUIDE */
+.guide-wrap{display:grid;grid-template-columns:220px 1fr;gap:20px;height:calc(100vh - 160px)}
+.guide-nav{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;overflow-y:auto}
+.guide-nav-item{padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;font-size:12px;font-weight:600;color:var(--text2);transition:all .2s;margin-bottom:2px}
+.guide-nav-item:hover{background:var(--bg3);color:var(--text)}
+.guide-nav-item.active{background:var(--accent);color:#fff}
+.guide-nav-section{font-size:9px;color:var(--text3);letter-spacing:.15em;text-transform:uppercase;font-family:var(--font-mono);padding:10px 10px 4px;margin-top:6px}
+.guide-content{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:28px;overflow-y:auto}
+.guide-page{display:none}
+.guide-page.active{display:block}
+.guide-title{font-size:22px;font-weight:800;color:var(--text);margin-bottom:6px}
+.guide-subtitle{font-size:13px;color:var(--text2);margin-bottom:24px;font-family:var(--font-mono)}
+.guide-section{margin-bottom:24px}
+.guide-h2{font-size:15px;font-weight:800;color:var(--text);margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.guide-h2::before{content:'';display:block;width:3px;height:16px;background:var(--accent);border-radius:2px}
+.guide-p{font-size:13px;color:var(--text2);line-height:1.8;margin-bottom:10px}
+.guide-list{list-style:none;padding:0}
+.guide-list li{font-size:13px;color:var(--text2);line-height:1.7;padding:4px 0 4px 16px;position:relative}
+.guide-list li::before{content:'—';position:absolute;left:0;color:var(--accent);font-weight:700}
+.guide-code{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-family:var(--font-mono);font-size:11px;color:var(--accent5);margin:10px 0;line-height:1.8}
+.guide-highlight{background:linear-gradient(135deg,rgba(124,106,255,.1),rgba(255,107,138,.05));border:1px solid rgba(124,106,255,.2);border-radius:var(--radius-sm);padding:14px 16px;margin:14px 0}
+.guide-highlight p{font-size:12px;color:var(--text2);line-height:1.7;margin:0}
+.guide-tag{display:inline-block;background:rgba(124,106,255,.15);color:var(--accent);font-size:10px;font-family:var(--font-mono);padding:2px 8px;border-radius:20px;margin:2px;border:1px solid rgba(124,106,255,.2)}
+.guide-flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:12px 0}
+.flow-box{background:var(--bg3);border:1px solid var(--border);padding:6px 12px;border-radius:var(--radius-sm);font-size:11px;color:var(--text);font-family:var(--font-mono)}
+.flow-arrow{color:var(--accent);font-size:16px}
+.guide-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.guide-mini-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px}
+.guide-mini-card h4{font-size:12px;font-weight:700;color:var(--text);margin-bottom:6px}
+.guide-mini-card p{font-size:11px;color:var(--text2);line-height:1.6}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--text3)}
+
+/* NOTIFICATION */
+.notif{position:fixed;bottom:24px;right:24px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px;font-size:12px;color:var(--text);font-family:var(--font-mono);display:flex;align-items:center;gap:8px;z-index:200;animation:slideIn .3s ease;box-shadow:0 8px 32px rgba(0,0,0,.4);max-width:320px}
+.notif.hide{animation:slideOut .3s ease forwards}
+@keyframes slideIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes slideOut{to{opacity:0;transform:translateX(20px)}}
+.notif-dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.notif-dot.green{background:var(--accent4)}
+.notif-dot.red{background:var(--accent2)}
+.notif-dot.blue{background:var(--accent5)}
+
+/* FILE VIEWER */
+.file-viewer{background:#0a0d14;border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-family:var(--font-mono);font-size:12px;color:var(--accent5);line-height:1.8;min-height:80px;white-space:pre-wrap;word-break:break-all}
+
+/* MINI CHART (SVG wave) */
+.mini-chart{width:100%;height:40px;margin-top:8px}
+
+/* RESPONSIVE */
+@media(max-width:900px){
+  .dash-stats{grid-template-columns:repeat(2,1fr)}
+  .dash-main{grid-template-columns:1fr}
+  .guide-wrap{grid-template-columns:1fr}
+  .guide-nav{height:auto}
+  #sidebar{width:58px;min-width:58px}
+  .logo-text,.logo-sub,.nav-item span,.status-info,.nav-badge{display:none}
+  .nav-item{justify-content:center;padding:10px}
+  .status-dot{margin:0 auto}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon">KR</div>
+      <div>
+        <div class="logo-text">KRAT OS</div>
+        <div class="logo-sub">v1.0.0 · EMBEDDED</div>
+      </div>
+    </div>
+    <div class="nav-section">
+      <div class="nav-label">Sistema</div>
+      <div class="nav-item active" onclick="showPanel('dashboard',this)">
+        <div class="nav-icon">⬡</div>
+        <span>Dashboard</span>
+      </div>
+      <div class="nav-label" style="margin-top:10px">Módulos</div>
+      <div class="nav-item" onclick="showPanel('ramdisk',this)">
+        <div class="nav-icon">◫</div>
+        <span>Disco en RAM</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('clock',this)">
+        <div class="nav-icon">◷</div>
+        <span>Reloj del Sistema</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('terminal',this)">
+        <div class="nav-icon">▶</div>
+        <span>Terminal</span>
+      </div>
+      <div class="nav-item" onclick="showPanel('guide',this)">
+        <div class="nav-icon">◈</div>
+        <span>Guia Técnica</span>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="sys-status">
+        <div class="status-dot"></div>
+        <div class="status-info">
+          <div class="status-name">Sistema Activo</div>
+          <div class="status-sub" id="sb-uptime">00:00:00</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div id="main">
+    <!-- HEADER -->
+    <div id="header">
+      <div class="header-title">KRAT <span>OS</span> — Simulador de Sistema Embebido</div>
+      <div class="header-badge"><span style="background:var(--accent4);width:6px;height:6px;border-radius:50%;display:inline-block"></span> En línea</div>
+      <div class="header-clock" id="hdr-clock">--:--:--</div>
+    </div>
+    <!-- CONTENT -->
+    <div id="content">
+
+      <!-- DASHBOARD -->
+      <div id="panel-dashboard" class="panel active">
+        <div class="page-header">
+          <h1>Panel de Control</h1>
+          <p>Estado general del sistema embebido simulado</p>
+        </div>
+        <div class="dash-stats">
+          <div class="stat-card">
+            <div class="card-icon c1">🧠</div>
+            <div class="stat-info">
+              <div class="stat-label">RAM Utilizada</div>
+              <div class="stat-val" id="d-ram-used">0 B</div>
+              <div class="stat-change" id="d-ram-pct">0% de 8 MB</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="card-icon c2">💾</div>
+            <div class="stat-info">
+              <div class="stat-label">RAM Disponible</div>
+              <div class="stat-val" id="d-ram-free">8 MB</div>
+              <div class="stat-change" id="d-files-count">0 archivos en disco</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="card-icon c3">⏱</div>
+            <div class="stat-info">
+              <div class="stat-label">Uptime</div>
+              <div class="stat-val" id="d-uptime">00:00</div>
+              <div class="stat-change">Tiempo activo del sistema</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="card-icon c4">🕐</div>
+            <div class="stat-info">
+              <div class="stat-label">Hora Actual</div>
+              <div class="stat-val" id="d-time" style="font-size:18px">--:--:--</div>
+              <div class="stat-change" id="d-date">---</div>
+            </div>
+          </div>
+        </div>
+        <div class="dash-main">
+          <div class="card">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+              <div>
+                <div class="card-title">Memoria RAM</div>
+                <div class="card-value" id="d-ram-pct2">0%</div>
+                <div class="card-sub">Utilización actual del disco RAM</div>
+              </div>
+              <div class="donut-wrap" style="position:relative;width:120px;height:120px">
+                <svg width="120" height="120" viewBox="0 0 120 120" id="donut-svg">
+                  <circle cx="60" cy="60" r="45" fill="none" stroke="var(--bg3)" stroke-width="14"/>
+                  <circle cx="60" cy="60" r="45" fill="none" stroke="url(#dg)" stroke-width="14"
+                    stroke-dasharray="282.6" stroke-dashoffset="282.6" id="donut-arc"
+                    stroke-linecap="round" transform="rotate(-90 60 60)" style="transition:stroke-dashoffset .8s ease"/>
+                  <defs>
+                    <linearGradient id="dg" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stop-color="var(--accent)"/>
+                      <stop offset="100%" stop-color="var(--accent2)"/>
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+                  <div class="donut-pct" id="donut-pct">0%</div>
+                  <div class="donut-lbl">RAM</div>
+                </div>
+              </div>
+            </div>
+            <div id="legend-items">
+              <div class="legend-item">
+                <div class="legend-dot" style="background:var(--accent)"></div>
+                <div class="legend-name">Sistema base</div>
+                <div style="flex:1;background:var(--bg3);height:3px;border-radius:2px;margin:0 8px">
+                  <div style="height:100%;width:12%;background:var(--accent);border-radius:2px"></div>
+                </div>
+                <div class="legend-val">~1 MB</div>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:var(--accent2)"></div>
+                <div class="legend-name">Archivos usuario</div>
+                <div style="flex:1;background:var(--bg3);height:3px;border-radius:2px;margin:0 8px">
+                  <div style="height:100%;border-radius:2px;background:var(--accent2);transition:width .5s" id="legend-bar-files"></div>
+                </div>
+                <div class="legend-val" id="legend-val-files">0 B</div>
+              </div>
+              <div class="legend-item">
+                <div class="legend-dot" style="background:var(--accent4)"></div>
+                <div class="legend-name">Libre</div>
+                <div style="flex:1;background:var(--bg3);height:3px;border-radius:2px;margin:0 8px">
+                  <div style="height:100%;border-radius:2px;background:var(--accent4);transition:width .5s" id="legend-bar-free"></div>
+                </div>
+                <div class="legend-val" id="legend-val-free">8 MB</div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Accesos Rápidos</div>
+            <div class="quicklinks" style="margin-top:12px">
+              <div class="qlink" onclick="showPanel('ramdisk',document.querySelectorAll('.nav-item')[1])">
+                <div class="qlink-icon">◫</div>
+                <div class="qlink-name">Disco RAM</div>
+                <div class="qlink-desc">Gestionar archivos en memoria</div>
+              </div>
+              <div class="qlink" onclick="showPanel('clock',document.querySelectorAll('.nav-item')[2])">
+                <div class="qlink-icon">◷</div>
+                <div class="qlink-name">Reloj</div>
+                <div class="qlink-desc">Cronómetro y temporizador</div>
+              </div>
+              <div class="qlink" onclick="showPanel('terminal',document.querySelectorAll('.nav-item')[3])">
+                <div class="qlink-icon">▶</div>
+                <div class="qlink-name">Terminal</div>
+                <div class="qlink-desc">Comandos del sistema</div>
+              </div>
+              <div class="qlink" onclick="showPanel('guide',document.querySelectorAll('.nav-item')[4])">
+                <div class="qlink-icon">◈</div>
+                <div class="qlink-name">Guia</div>
+                <div class="qlink-desc">Documentación educativa</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="activity-log">
+          <div class="flex items-center justify-between mb12">
+            <div class="card-title" style="margin:0">Registro de Actividad</div>
+            <button class="btn btn-ghost btn-xs" onclick="clearLog()">Limpiar</button>
+          </div>
+          <div id="activity-log-list">
+            <div class="log-item"><div class="log-dot" style="background:var(--accent4)"></div><div class="log-msg">Sistema KRAT OS iniciado correctamente</div><div class="log-time" id="log-time-init">--:--:--</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- RAM DISK -->
+      <div id="panel-ramdisk" class="panel">
+        <div class="page-header">
+          <h1>Disco en RAM</h1>
+          <p>Sistema de archivos temporal en memoria volátil — los datos se pierden al cerrar</p>
+        </div>
+        <div class="ram-stats">
+          <div class="ram-stat">
+            <div class="ram-stat-val" id="rs-used">0 B</div>
+            <div class="ram-stat-lbl">Utilizado</div>
+            <div class="progress-wrap mt8"><div class="progress-bar bar-accent" id="rs-bar" style="width:0%"></div></div>
+          </div>
+          <div class="ram-stat">
+            <div class="ram-stat-val" id="rs-free">8.00 MB</div>
+            <div class="ram-stat-lbl">Disponible</div>
+          </div>
+          <div class="ram-stat">
+            <div class="ram-stat-val" id="rs-count">0</div>
+            <div class="ram-stat-lbl">Archivos</div>
+          </div>
+        </div>
+        <div class="ram-toolbar">
+          <button class="btn btn-primary" onclick="openCreateModal()">+ Nuevo Archivo</button>
+          <button class="btn btn-ghost" onclick="renderFileList()">↺ Actualizar</button>
+          <div style="flex:1"></div>
+          <span style="font-size:11px;color:var(--text3);font-family:var(--font-mono)">Límite: 8 MB · Volátil</span>
+        </div>
+        <div class="file-list" id="file-list-container">
+          <div class="file-list-header">
+            <div>Nombre</div><div>Tamaño</div><div>Creado</div><div>Modificado</div><div>Acciones</div>
+          </div>
+          <div id="file-list-body">
+            <div class="empty-state"><div class="empty-icon">◫</div><div class="empty-text">No hay archivos en el disco RAM</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CLOCK -->
+      <div id="panel-clock" class="panel">
+        <div class="page-header">
+          <h1>Reloj del Sistema</h1>
+          <p>Tiempo real, cronómetro, temporizador y uptime del sistema</p>
+        </div>
+        <div class="card" style="margin-bottom:16px">
+          <div class="clock-display">
+            <div class="clock-time" id="ck-time">--:--:--</div>
+            <div class="clock-date" id="ck-date">---</div>
+          </div>
+        </div>
+        <div class="clock-grid">
+          <!-- CRONOMETRO -->
+          <div class="clock-widget">
+            <div class="widget-title">Cronómetro</div>
+            <div class="chrono-display" id="chrono-display">00:00:00.0</div>
+            <div class="chrono-controls">
+              <button class="btn btn-primary btn-sm" id="chrono-btn" onclick="toggleChrono()">Iniciar</button>
+              <button class="btn btn-ghost btn-sm" onclick="resetChrono()">Reiniciar</button>
+              <button class="btn btn-ghost btn-sm" onclick="lapChrono()">Vuelta</button>
+            </div>
+            <div id="laps-list" style="margin-top:12px;max-height:100px;overflow-y:auto;font-family:var(--font-mono);font-size:11px;color:var(--text2)"></div>
+          </div>
+          <!-- TEMPORIZADOR -->
+          <div class="clock-widget">
+            <div class="widget-title">Temporizador</div>
+            <div style="display:flex;gap:8px;justify-content:center;margin-bottom:8px">
+              <div><input class="timer-input" type="number" id="t-h" value="0" min="0" max="99"><span class="timer-label">horas</span></div>
+              <div style="padding-top:8px;font-size:24px;color:var(--text2)">:</div>
+              <div><input class="timer-input" type="number" id="t-m" value="5" min="0" max="59"><span class="timer-label">min</span></div>
+              <div style="padding-top:8px;font-size:24px;color:var(--text2)">:</div>
+              <div><input class="timer-input" type="number" id="t-s" value="0" min="0" max="59"><span class="timer-label">seg</span></div>
+            </div>
+            <div class="timer-display" id="timer-display">05:00</div>
+            <div class="chrono-controls">
+              <button class="btn btn-primary btn-sm" id="timer-btn" onclick="toggleTimer()">Iniciar</button>
+              <button class="btn btn-ghost btn-sm" onclick="resetTimer()">Reiniciar</button>
+            </div>
+          </div>
+          <!-- UPTIME -->
+          <div class="clock-widget">
+            <div class="widget-title">Uptime del Sistema</div>
+            <div class="uptime-grid">
+              <div class="uptime-unit"><div class="uptime-val" id="up-d">0</div><div class="uptime-lbl">días</div></div>
+              <div class="uptime-unit"><div class="uptime-val" id="up-h">00</div><div class="uptime-lbl">horas</div></div>
+              <div class="uptime-unit"><div class="uptime-val" id="up-m">00</div><div class="uptime-lbl">min</div></div>
+              <div class="uptime-unit"><div class="uptime-val" id="up-s">00</div><div class="uptime-lbl">seg</div></div>
+            </div>
+          </div>
+          <!-- EVENTOS -->
+          <div class="clock-widget">
+            <div class="widget-title">Registro de Eventos</div>
+            <ul class="event-log" id="event-log"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- TERMINAL -->
+      <div id="panel-terminal" class="panel">
+        <div class="page-header">
+          <h1>Terminal</h1>
+          <p>Interprete de comandos interactivo — ingresa <code style="color:var(--accent);background:var(--bg3);padding:1px 6px;border-radius:4px;font-family:var(--font-mono)">help</code> para ver los comandos disponibles</p>
+        </div>
+        <div class="terminal-wrap">
+          <div class="term-header">
+            <div class="term-dot red"></div>
+            <div class="term-dot yellow"></div>
+            <div class="term-dot green"></div>
+            <div class="term-title">KRAT OS — Terminal v1.0</div>
+          </div>
+          <div class="term-body">
+            <div class="term-output" id="term-output"></div>
+            <div class="term-input-wrap">
+              <span class="term-prompt-label">kratos@embedded:~$</span>
+              <input class="term-input" id="term-input" type="text" placeholder="Escribe un comando..." autocomplete="off" spellcheck="false" onkeydown="handleTermKey(event)">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GUIDE -->
+      <div id="panel-guide" class="panel">
+        <div class="page-header">
+          <h1>Guia Técnica</h1>
+          <p>Objeto Virtual de Aprendizaje — comprende los fundamentos de KRAT OS</p>
+        </div>
+        <div class="guide-wrap">
+          <div class="guide-nav">
+            <div class="guide-nav-section">General</div>
+            <div class="guide-nav-item active" onclick="showGuide('intro',this)">Introducción</div>
+            <div class="guide-nav-section">Módulos</div>
+            <div class="guide-nav-item" onclick="showGuide('ramdisk-guide',this)">Disco en RAM</div>
+            <div class="guide-nav-item" onclick="showGuide('clock-guide',this)">Reloj del Sistema</div>
+            <div class="guide-nav-item" onclick="showGuide('terminal-guide',this)">Terminal</div>
+            <div class="guide-nav-section">Sistema</div>
+            <div class="guide-nav-item" onclick="showGuide('architecture',this)">Funcionamiento General</div>
+            <div class="guide-nav-item" onclick="showGuide('conclusions',this)">Conclusiones</div>
+          </div>
+          <div class="guide-content">
+            <!-- INTRO -->
+            <div class="guide-page active" id="guide-intro">
+              <div class="guide-title">Bienvenido a KRAT OS</div>
+              <div class="guide-subtitle">Simulador educativo de sistema embebido</div>
+              <div class="guide-section">
+                <div class="guide-h2">Que es KRAT OS</div>
+                <div class="guide-p">KRAT OS es un simulador interactivo diseñado para reproducir el comportamiento interno de un sistema embebido. A través de sus módulos, el usuario puede experimentar de forma práctica con conceptos fundamentales de los sistemas de cómputo de bajo nivel: gestión de memoria volátil, sincronización temporal, interacción mediante comandos y comprensión de la arquitectura general de un sistema operativo embebido.</div>
+                <div class="guide-p">El nombre KRAT OS proviene de la combinación de conceptos de control y sistema, haciendo referencia al dominio sobre los recursos del hardware simulado.</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Objetivo del Simulador</div>
+                <div class="guide-p">El objetivo principal de KRAT OS es proporcionar un entorno educativo donde el estudiante pueda:</div>
+                <ul class="guide-list">
+                  <li>Comprender el concepto de memoria volátil (RAM) y su comportamiento temporal</li>
+                  <li>Experimentar con operaciones de sistema de archivos en un entorno simulado</li>
+                  <li>Entender la función del reloj del sistema en un entorno embebido</li>
+                  <li>Aprender a interactuar con un sistema a través de una interfaz de línea de comandos</li>
+                  <li>Visualizar la interacción entre los diferentes componentes de un sistema</li>
+                </ul>
+              </div>
+              <div class="guide-highlight">
+                <p>Todos los datos creados en KRAT OS son temporales. Al cerrar la aplicación, la memoria se libera completamente, tal como ocurre en un sistema real con memoria RAM sin respaldo no volátil.</p>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Módulos del Sistema</div>
+                <div class="guide-card-grid">
+                  <div class="guide-mini-card"><h4>◫ Disco en RAM</h4><p>Simula un sistema de archivos completo sobre memoria volátil. Permite crear, leer, editar, renombrar y eliminar archivos con límite de capacidad.</p></div>
+                  <div class="guide-mini-card"><h4>◷ Reloj del Sistema</h4><p>Muestra la hora en tiempo real, cronómetro, temporizador configurable y el uptime del sistema desde su inicio.</p></div>
+                  <div class="guide-mini-card"><h4>▶ Terminal</h4><p>Interfaz de línea de comandos que interactúa con todos los módulos del sistema. Historial de comandos y respuestas dinámicas.</p></div>
+                  <div class="guide-mini-card"><h4>◈ Guia Técnica</h4><p>Este módulo educativo. Explica los conceptos teóricos detrás de cada componente del sistema simulado.</p></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RAM DISK GUIDE -->
+            <div class="guide-page" id="guide-ramdisk-guide">
+              <div class="guide-title">Disco en RAM</div>
+              <div class="guide-subtitle">Sistema de archivos sobre memoria volátil</div>
+              <div class="guide-section">
+                <div class="guide-h2">Que es un Disco RAM</div>
+                <div class="guide-p">Un disco RAM (también llamado RAM disk o ramdisk) es una porción de la memoria RAM del sistema que se utiliza como si fuera un dispositivo de almacenamiento. A diferencia de un disco duro o una unidad SSD, los datos en un disco RAM no persisten cuando el sistema se apaga o reinicia.</div>
+                <div class="guide-p">En sistemas embebidos, esta técnica es ampliamente utilizada cuando se requiere almacenamiento temporal extremadamente rápido durante la ejecución del sistema.</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Como Funciona</div>
+                <div class="guide-p">El disco RAM en KRAT OS asigna un bloque fijo de 8 megabytes de la memoria del navegador. Cada archivo creado consume una porción de ese espacio. El sistema lleva un registro preciso de:</div>
+                <ul class="guide-list">
+                  <li>Nombre del archivo y su identificador único</li>
+                  <li>Contenido del archivo como cadena de texto codificada</li>
+                  <li>Tamaño calculado en bytes a partir del contenido</li>
+                  <li>Marca de tiempo de creación y de última modificación</li>
+                </ul>
+                <div class="guide-code">// Estructura interna de un archivo
+{
+  id: "uuid",
+  name: "archivo.txt",
+  content: "Contenido del archivo...",
+  size: 256,        // bytes
+  createdAt: Date,  // timestamp de creación
+  modifiedAt: Date  // timestamp de modificación
+}</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Ventajas del Disco RAM</div>
+                <ul class="guide-list">
+                  <li>Velocidad de acceso extremadamente alta — igual a la velocidad de la RAM</li>
+                  <li>Sin latencia de escritura ni cabezales que posicionar</li>
+                  <li>Ideal para archivos temporales de alta frecuencia de acceso</li>
+                  <li>Reduce el desgaste de dispositivos de almacenamiento físicos</li>
+                  <li>Predecible y sin fragmentación en su funcionamiento</li>
+                </ul>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Desventajas del Disco RAM</div>
+                <ul class="guide-list">
+                  <li>Volatilidad total: todos los datos se pierden al apagar el sistema</li>
+                  <li>Capacidad limitada al tamaño de la RAM disponible</li>
+                  <li>No apto para almacenamiento persistente entre sesiones</li>
+                  <li>Mayor costo por GB comparado con almacenamiento físico</li>
+                </ul>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Aplicaciones Reales</div>
+                <div class="guide-card-grid">
+                  <div class="guide-mini-card"><h4>Sistemas Linux</h4><p>tmpfs y ramfs son implementaciones de disco RAM nativas en Linux, usadas para /tmp y /run.</p></div>
+                  <div class="guide-mini-card"><h4>Sistemas Embebidos</h4><p>Routers, PLCs e industria automotriz usan RAM disks para logs y buffers temporales de alta velocidad.</p></div>
+                  <div class="guide-mini-card"><h4>Servidores Web</h4><p>Cachés de bases de datos y archivos de sesión se almacenan en RAM para reducir latencia de I/O.</p></div>
+                  <div class="guide-mini-card"><h4>IoT y Sensores</h4><p>Dispositivos de bajo consumo almacenan lecturas en RAM antes de transmitirlas al servidor central.</p></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- CLOCK GUIDE -->
+            <div class="guide-page" id="guide-clock-guide">
+              <div class="guide-title">Reloj del Sistema</div>
+              <div class="guide-subtitle">Sincronización temporal en sistemas embebidos</div>
+              <div class="guide-section">
+                <div class="guide-h2">Que es el Reloj del Sistema</div>
+                <div class="guide-p">El reloj del sistema es uno de los componentes más críticos en cualquier sistema de cómputo. Se trata de un contador que avanza de forma continua y que proporciona una referencia temporal a todos los demás componentes del sistema. En hardware, este contador suele estar respaldado por un oscilador de cristal de cuarzo que garantiza su precisión.</div>
+                <div class="guide-p">Los sistemas operativos utilizan este reloj para múltiples propósitos: registro de eventos, planificación de procesos, gestión de timeouts, y sincronización con servidores de tiempo externos (NTP).</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Para Que Sirve</div>
+                <ul class="guide-list">
+                  <li>Marcar la hora y fecha de creación y modificación de archivos</li>
+                  <li>Planificar la ejecución de tareas en momentos específicos</li>
+                  <li>Medir el tiempo de ejecución de procesos y funciones</li>
+                  <li>Sincronizar la comunicación entre diferentes componentes del sistema</li>
+                  <li>Registrar eventos con marcas de tiempo precisas para auditoría</li>
+                  <li>Implementar watchdogs y mecanismos de timeout</li>
+                </ul>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Relacion con los Sistemas Embebidos</div>
+                <div class="guide-p">En sistemas embebidos, la gestión del tiempo tiene particularidades importantes. Muchos microcontroladores incluyen un módulo llamado RTC (Real-Time Clock) que puede mantener la hora incluso cuando el sistema principal está apagado, gracias a una batería de respaldo.</div>
+                <div class="guide-highlight">
+                  <p>Un sistema embebido sin reloj preciso puede comprometer la integridad de logs, la planificación de tareas y la sincronización de comunicaciones. Por eso el RTC es considerado un componente esencial en cualquier diseño embebido serio.</p>
+                </div>
+                <div class="guide-p">El uptime del sistema (tiempo de actividad continua) es un indicador clave de la estabilidad del sistema. En KRAT OS, este valor se calcula desde el momento en que la aplicación es iniciada, simulando el comportamiento de un sistema embebido real.</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Componentes del Módulo</div>
+                <ul class="guide-list">
+                  <li>Reloj de tiempo real con actualización por segundo</li>
+                  <li>Cronómetro con capacidad de registrar vueltas parciales</li>
+                  <li>Temporizador configurable en horas, minutos y segundos</li>
+                  <li>Panel de uptime desglosado en dias, horas, minutos y segundos</li>
+                  <li>Registro de eventos con marca de tiempo</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- TERMINAL GUIDE -->
+            <div class="guide-page" id="guide-terminal-guide">
+              <div class="guide-title">Terminal</div>
+              <div class="guide-subtitle">Interfaz de línea de comandos del sistema</div>
+              <div class="guide-section">
+                <div class="guide-h2">Que es una Terminal</div>
+                <div class="guide-p">Una terminal (también llamada consola, shell o CLI — Command Line Interface) es una interfaz de texto que permite al usuario interactuar directamente con el sistema operativo mediante la escritura de comandos. Es la forma más directa de comunicarse con el núcleo del sistema, sin capas gráficas intermedias.</div>
+                <div class="guide-p">En sistemas embebidos, la terminal es frecuentemente la única interfaz disponible para diagnóstico, configuración y mantenimiento del sistema, ya que muchos dispositivos embebidos no cuentan con pantalla gráfica o teclado físico.</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Como Interactua con el Sistema</div>
+                <div class="guide-p">Cada comando ingresado pasa por un proceso de interpretación:</div>
+                <div class="guide-flow">
+                  <div class="flow-box">Entrada</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-box">Parser</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-box">Dispatcher</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-box">Módulo</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-box">Respuesta</div>
+                </div>
+                <div class="guide-p">El parser separa el comando de sus argumentos. El dispatcher identifica qué módulo debe ejecutarlo. El módulo procesa la acción y devuelve la respuesta que se muestra en pantalla.</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Comandos Disponibles</div>
+                <div class="guide-code">help                    — Muestra todos los comandos disponibles
+time                    — Muestra la hora actual del sistema
+date                    — Muestra la fecha completa actual
+uptime                  — Muestra el tiempo de actividad del sistema
+clear                   — Limpia la pantalla de la terminal
+ls                      — Lista todos los archivos del disco RAM
+create archivo.txt      — Crea un nuevo archivo vacío
+read archivo.txt        — Muestra el contenido de un archivo
+delete archivo.txt      — Elimina un archivo del disco RAM
+rename arc1.txt arc2.txt — Renombra un archivo existente
+memory                  — Muestra estadísticas de uso de memoria
+exit                    — Regresa al panel principal</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Historial de Comandos</div>
+                <div class="guide-p">La terminal de KRAT OS implementa un historial de comandos navegable mediante las teclas de flecha hacia arriba y hacia abajo, de la misma forma que terminales reales como Bash o Zsh. Esto permite recuperar y reutilizar comandos anteriores sin necesidad de volver a escribirlos.</div>
+                <ul class="guide-list">
+                  <li>Flecha arriba: comando anterior en el historial</li>
+                  <li>Flecha abajo: comando siguiente en el historial</li>
+                  <li>Enter: ejecutar el comando actual</li>
+                  <li>Tab: (simulado) completado de nombre de archivo</li>
+                </ul>
+              </div>
+            </div>
+
+            <!-- ARCHITECTURE -->
+            <div class="guide-page" id="guide-architecture">
+              <div class="guide-title">Funcionamiento General</div>
+              <div class="guide-subtitle">Arquitectura e interacción de módulos en KRAT OS</div>
+              <div class="guide-section">
+                <div class="guide-h2">Como Interactuan los Modulos</div>
+                <div class="guide-p">KRAT OS está diseñado bajo el principio de módulos interdependientes que comparten un estado centralizado. Cada módulo tiene acceso a los recursos del sistema pero mantiene su propia lógica de presentación. El estado global incluye:</div>
+                <ul class="guide-list">
+                  <li>El mapa de archivos del disco RAM (compartido por el módulo de archivos y la terminal)</li>
+                  <li>Los contadores de tiempo (compartidos por el reloj, dashboard y registro de eventos)</li>
+                  <li>El registro de actividad (accesible desde cualquier módulo)</li>
+                  <li>Las estadísticas de memoria (calculadas dinámicamente y reflejadas en el dashboard)</li>
+                </ul>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Flujo de Funcionamiento</div>
+                <div class="guide-p">Cuando el usuario interactúa con KRAT OS, el flujo general de procesamiento sigue este camino:</div>
+                <div class="guide-flow">
+                  <div class="flow-box">Usuario</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-box">Interfaz GUI / Terminal</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-box">Controlador de Módulo</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-box">Estado RAM</div>
+                  <div class="flow-arrow">→</div>
+                  <div class="flow-box">Actualización UI</div>
+                </div>
+                <div class="guide-p">Este patrón garantiza que el estado del sistema sea siempre consistente, independientemente de si el usuario opera desde la interfaz gráfica o desde la terminal de comandos.</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Arquitectura del Sistema</div>
+                <div class="guide-code">KRAT OS
+├── core/
+│   ├── ramDisk.js       // Motor del sistema de archivos RAM
+│   ├── clock.js         // Gestor de tiempo y eventos
+│   └── state.js         // Estado global compartido
+├── modules/
+│   ├── dashboard.js     // Panel de control principal
+│   ├── ramdisk.js       // Interfaz del disco RAM
+│   ├── clock.js         // Interfaz del reloj
+│   ├── terminal.js      // Intérprete de comandos
+│   └── guide.js         // Guia técnica educativa
+├── ui/
+│   ├── components.js    // Componentes reutilizables
+│   └── theme.css        // Variables de diseño
+└── index.html           // Punto de entrada</div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Sincronizacion en Tiempo Real</div>
+                <div class="guide-p">KRAT OS utiliza un bucle de actualización principal que se ejecuta cada segundo para mantener todos los indicadores sincronizados. Este mecanismo es análogo al tick del sistema operativo en sistemas reales, donde el temporizador del hardware genera una interrupción periódica que el kernel utiliza para actualizar su estado interno.</div>
+                <div class="guide-highlight">
+                  <p>En un sistema embebido real, este mecanismo se implementa mediante interrupciones de hardware generadas por el RTC o un timer dedicado. KRAT OS lo simula usando el API de temporización del navegador web.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- CONCLUSIONS -->
+            <div class="guide-page" id="guide-conclusions">
+              <div class="guide-title">Conclusiones</div>
+              <div class="guide-subtitle">Aprendizajes y aplicaciones reales de los conceptos de KRAT OS</div>
+              <div class="guide-section">
+                <div class="guide-h2">Que Conceptos Aprende el Usuario</div>
+                <div class="guide-p">Al trabajar con KRAT OS, el estudiante adquiere experiencia práctica con conceptos fundamentales de la ingeniería de sistemas y software embebido:</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin:10px 0">
+                  <span class="guide-tag">Memoria Volátil</span>
+                  <span class="guide-tag">Sistema de Archivos</span>
+                  <span class="guide-tag">Reloj de Tiempo Real</span>
+                  <span class="guide-tag">Interfaz CLI</span>
+                  <span class="guide-tag">Uptime</span>
+                  <span class="guide-tag">RAM Disk</span>
+                  <span class="guide-tag">Sistemas Embebidos</span>
+                  <span class="guide-tag">Arquitectura de SO</span>
+                  <span class="guide-tag">Gestión de Recursos</span>
+                  <span class="guide-tag">Temporización</span>
+                </div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Aplicaciones Reales de estos Componentes</div>
+                <div class="guide-card-grid">
+                  <div class="guide-mini-card"><h4>Industria Automotriz</h4><p>Los sistemas ECU de los vehículos modernos utilizan RAM disks para almacenar datos de diagnóstico temporales y logs de sensores.</p></div>
+                  <div class="guide-mini-card"><h4>Telecomunicaciones</h4><p>Routers y switches utilizan discos RAM para tablas de enrutamiento y cachés de resolución de nombres que requieren acceso ultrarrápido.</p></div>
+                  <div class="guide-mini-card"><h4>Aeroespacial</h4><p>Sistemas de control de satélites y aviones usan memoria volátil para datos de vuelo en tiempo real con requerimientos estrictos de latencia.</p></div>
+                  <div class="guide-mini-card"><h4>Medicina</h4><p>Equipos médicos como monitores de pacientes almacenan lecturas temporales en RAM para procesamiento en tiempo real antes de su persistencia.</p></div>
+                  <div class="guide-mini-card"><h4>IoT Industrial</h4><p>Sensores y actuadores inteligentes en fábricas utilizan estos conceptos para gestión eficiente de datos en entornos de recursos limitados.</p></div>
+                  <div class="guide-mini-card"><h4>Sistemas Criticos</h4><p>Centrales nucleares, sistemas de control ferroviario y plantas industriales aplican estos principios para garantizar operación confiable.</p></div>
+                </div>
+              </div>
+              <div class="guide-section">
+                <div class="guide-h2">Reflexion Final</div>
+                <div class="guide-highlight">
+                  <p>Los sistemas embebidos están en el corazón de la tecnología moderna. Comprender cómo gestionan su memoria, sincronizan su tiempo y exponen interfaces de control es fundamental para cualquier ingeniero de software o electrónico que trabaje en el ecosistema de hardware-software. KRAT OS proporciona un punto de entrada accesible e interactivo a este fascinante campo.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div id="modal-create" style="display:none" class="modal-overlay" onclick="closeModal('modal-create',event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Crear Nuevo Archivo</div>
+      <button class="modal-close" onclick="closeModal('modal-create')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nombre del archivo</label>
+      <input class="input" id="create-name" placeholder="ejemplo.txt" />
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contenido inicial</label>
+      <textarea class="input" id="create-content" placeholder="Escribe el contenido del archivo..." rows="5"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-create')">Cancelar</button>
+      <button class="btn btn-primary" onclick="createFileConfirm()">Crear Archivo</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-edit" style="display:none" class="modal-overlay" onclick="closeModal('modal-edit',event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="edit-modal-title">Editar Archivo</div>
+      <button class="modal-close" onclick="closeModal('modal-edit')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contenido</label>
+      <textarea class="input" id="edit-content" rows="8"></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-edit')">Cancelar</button>
+      <button class="btn btn-primary" onclick="saveEditConfirm()">Guardar Cambios</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-read" style="display:none" class="modal-overlay" onclick="closeModal('modal-read',event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="read-modal-title">Ver Archivo</div>
+      <button class="modal-close" onclick="closeModal('modal-read')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contenido</label>
+      <div class="file-viewer" id="read-content"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="closeModal('modal-read')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-rename" style="display:none" class="modal-overlay" onclick="closeModal('modal-rename',event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">Renombrar Archivo</div>
+      <button class="modal-close" onclick="closeModal('modal-rename')">✕</button>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Nuevo nombre</label>
+      <input class="input" id="rename-input" placeholder="nuevo-nombre.txt" />
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-rename')">Cancelar</button>
+      <button class="btn btn-primary" onclick="renameConfirm()">Renombrar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ==========================================
+// KRAT OS — Sistema Core
+// ==========================================
+
+const RAM_LIMIT = 8 * 1024 * 1024; // 8 MB
+const SYS_RESERVED = 1024 * 1024;   // 1 MB sistema
+
+// Estado global
+const KratOS = {
+  startTime: Date.now(),
+  files: new Map(),
+  activityLog: [],
+  events: [],
+  cmdHistory: [],
+  cmdHistoryIdx: -1,
+  currentEditId: null,
+  currentRenameId: null,
+};
+
+// ---- UTILIDADES ----
+function fmtSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1048576) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/1048576).toFixed(2) + ' MB';
+}
+function fmtDate(d) {
+  return d.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'});
+}
+function fmtTime(d) {
+  return d.toLocaleTimeString('es-CO',{hour12:false});
+}
+function fmtDateTime(d) {
+  return fmtDate(d) + ' ' + fmtTime(d);
+}
+function uuid() {
+  return Math.random().toString(36).substr(2,9);
+}
+// Bytes usados por archivos de usuario (sin reserva del sistema)
+function getUserBytes() {
+  let b = 0;
+  KratOS.files.forEach(f => b += f.size);
+  return b;
+}
+// Bytes totales usados (sistema + usuario) para el Dashboard
+function getUsedBytes() {
+  return SYS_RESERVED + getUserBytes();
+}
+// Bytes libres totales (del total de 8 MB)
+function getFreeBytes() {
+  return RAM_LIMIT - getUsedBytes();
+}
+// Bytes libres para archivos de usuario (de los 7 MB disponibles)
+function getUserFreeBytes() {
+  return RAM_LIMIT - SYS_RESERVED - getUserBytes();
+}
+
+// ---- LOG ----
+function logActivity(msg, type='info') {
+  const now = new Date();
+  KratOS.activityLog.unshift({msg, time: fmtTime(now), type});
+  if (KratOS.activityLog.length > 50) KratOS.activityLog.pop();
+  renderActivityLog();
+  addEvent(msg);
+}
+function clearLog() {
+  KratOS.activityLog = [];
+  renderActivityLog();
+}
+function renderActivityLog() {
+  const el = document.getElementById('activity-log-list');
+  if (!el) return;
+  if (KratOS.activityLog.length === 0) {
+    el.innerHTML = '<div class="log-item"><div class="log-dot" style="background:var(--text3)"></div><div class="log-msg" style="color:var(--text3)">Sin actividad registrada</div></div>';
+    return;
+  }
+  const colors = {info:'var(--accent)',ok:'var(--accent4)',err:'var(--accent2)',warn:'var(--accent3)'};
+  el.innerHTML = KratOS.activityLog.slice(0,8).map(e=>`
+    <div class="log-item">
+      <div class="log-dot" style="background:${colors[e.type]||colors.info}"></div>
+      <div class="log-msg">${e.msg}</div>
+      <div class="log-time">${e.time}</div>
+    </div>`).join('');
+}
+function addEvent(msg) {
+  const now = new Date();
+  KratOS.events.unshift({msg, time: fmtTime(now)});
+  if (KratOS.events.length > 20) KratOS.events.pop();
+  renderEventLog();
+}
+function renderEventLog() {
+  const el = document.getElementById('event-log');
+  if (!el) return;
+  el.innerHTML = KratOS.events.slice(0,12).map(e=>`
+    <li class="event-item">
+      <span class="event-time">${e.time}</span>
+      <span class="event-msg">${e.msg}</span>
+    </li>`).join('');
+}
+
+// ---- NOTIFICACIONES ----
+function notify(msg, type='ok') {
+  const colors = {ok:'green',err:'red',info:'blue'};
+  const n = document.createElement('div');
+  n.className = 'notif';
+  n.innerHTML = `<div class="notif-dot ${colors[type]||'blue'}"></div><span>${msg}</span>`;
+  document.body.appendChild(n);
+  setTimeout(()=>{ n.classList.add('hide'); setTimeout(()=>n.remove(),300); }, 3000);
+}
+
+// ---- NAVEGACION ----
+function showPanel(id, navEl) {
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  if (navEl) navEl.classList.add('active');
+  if (id === 'ramdisk') renderFileList();
+  if (id === 'terminal') setTimeout(()=>document.getElementById('term-input').focus(),100);
+}
+
+// ---- CLOCK SYSTEM ----
+let chronoRunning = false, chronoMs = 0, chronoStart = 0, chronoInterval = null;
+let timerRunning = false, timerRemaining = 0, timerInterval = null;
+
+function clockTick() {
+  const now = new Date();
+  const ts = fmtTime(now);
+  // header
+  const hc = document.getElementById('hdr-clock');
+  if (hc) hc.textContent = ts;
+  // dashboard
+  const dt = document.getElementById('d-time');
+  if (dt) dt.textContent = ts;
+  const dd = document.getElementById('d-date');
+  if (dd) dd.textContent = fmtDate(now);
+  // clock panel
+  const ct = document.getElementById('ck-time');
+  if (ct) ct.textContent = ts;
+  const cd = document.getElementById('ck-date');
+  if (cd) {
+    const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+    const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    cd.textContent = days[now.getDay()]+', '+now.getDate()+' de '+months[now.getMonth()]+' de '+now.getFullYear();
+  }
+  // uptime
+  const elapsed = Math.floor((Date.now()-KratOS.startTime)/1000);
+  const ud=Math.floor(elapsed/86400), uh=Math.floor((elapsed%86400)/3600), um=Math.floor((elapsed%3600)/60), us=elapsed%60;
+  const upStr = `${String(uh).padStart(2,'0')}:${String(um).padStart(2,'0')}:${String(us).padStart(2,'0')}`;
+  const sbUp = document.getElementById('sb-uptime');
+  if (sbUp) sbUp.textContent = upStr;
+  const du = document.getElementById('d-uptime');
+  if (du) du.textContent = elapsed < 3600 ? `${String(um).padStart(2,'0')}:${String(us).padStart(2,'0')}` : upStr;
+  const upd=document.getElementById('up-d'),uph=document.getElementById('up-h'),upm=document.getElementById('up-m'),ups=document.getElementById('up-s');
+  if (upd) upd.textContent=ud;
+  if (uph) uph.textContent=String(uh).padStart(2,'0');
+  if (upm) upm.textContent=String(um).padStart(2,'0');
+  if (ups) ups.textContent=String(us).padStart(2,'0');
+  // dashboard memory
+  updateDashMemory();
+  // init log time
+  const lit = document.getElementById('log-time-init');
+  if (lit && lit.textContent === '--:--:--') lit.textContent = ts;
+}
+setInterval(clockTick, 1000);
+clockTick();
+
+// ---- FUNCIÓN CENTRALIZADA DE ESTADÍSTICAS DE MEMORIA ----
+// Actualiza TODOS los indicadores visuales: Dashboard, Disco RAM y gráficos
+function updateMemoryStats() {
+  const userB   = getUserBytes();          // bytes de archivos de usuario
+  const used    = getUsedBytes();          // total usado (sistema + usuario)
+  const free    = getFreeBytes();          // libre total
+  const userFree = getUserFreeBytes();     // libre para archivos de usuario
+  const pct     = Math.round(used / RAM_LIMIT * 100);
+  const userPct = Math.round(userB / RAM_LIMIT * 100);
+  const freePct = Math.round(free  / RAM_LIMIT * 100);
+
+  // --- DASHBOARD: tarjetas superiores ---
+  const elRamUsed = document.getElementById('d-ram-used');
+  if (elRamUsed) elRamUsed.textContent = fmtSize(used);
+
+  const elRamFree = document.getElementById('d-ram-free');
+  if (elRamFree) elRamFree.textContent = fmtSize(free);
+
+  const elRamPct = document.getElementById('d-ram-pct');
+  if (elRamPct) elRamPct.textContent = `${pct}% de 8 MB`;
+
+  const elRamPct2 = document.getElementById('d-ram-pct2');
+  if (elRamPct2) elRamPct2.textContent = pct + '%';
+
+  const elFilesCount = document.getElementById('d-files-count');
+  if (elFilesCount) elFilesCount.textContent = KratOS.files.size + ' archivo' + (KratOS.files.size !== 1 ? 's' : '') + ' en disco';
+
+  // --- DASHBOARD: gráfico donut ---
+  const arc = document.getElementById('donut-arc');
+  if (arc) {
+    const circ = 2 * Math.PI * 45;
+    arc.style.strokeDashoffset = circ - (pct / 100) * circ;
+  }
+  const donutPct = document.getElementById('donut-pct');
+  if (donutPct) donutPct.textContent = pct + '%';
+
+  // --- DASHBOARD: leyenda de barras ---
+  const lbFiles = document.getElementById('legend-bar-files');
+  if (lbFiles) lbFiles.style.width = userPct + '%';
+  const lbFree = document.getElementById('legend-bar-free');
+  if (lbFree) lbFree.style.width = freePct + '%';
+  const lvFiles = document.getElementById('legend-val-files');
+  if (lvFiles) lvFiles.textContent = fmtSize(userB);
+  const lvFree = document.getElementById('legend-val-free');
+  if (lvFree) lvFree.textContent = fmtSize(free);
+
+  // --- PANEL DISCO RAM: estadísticas superiores ---
+  // El panel Disco RAM muestra solo los bytes de archivos de usuario
+  // (no incluye la reserva del sistema, que es fija e invisible al usuario)
+  const userUsedPct = getUserBytes() === 0 ? 0 : Math.round(getUserBytes() / (RAM_LIMIT - SYS_RESERVED) * 100);
+
+  const rsUsed = document.getElementById('rs-used');
+  if (rsUsed) rsUsed.textContent = fmtSize(userB);
+
+  const rsFree = document.getElementById('rs-free');
+  if (rsFree) rsFree.textContent = fmtSize(userFree);
+
+  const rsCount = document.getElementById('rs-count');
+  if (rsCount) rsCount.textContent = KratOS.files.size;
+
+  const rsBar = document.getElementById('rs-bar');
+  if (rsBar) rsBar.style.width = userUsedPct + '%';
+}
+// Alias para compatibilidad con clockTick()
+function updateDashMemory() { updateMemoryStats(); }
+
+// CRONOMETRO
+function toggleChrono() {
+  const btn = document.getElementById('chrono-btn');
+  if (!chronoRunning) {
+    chronoStart = Date.now() - chronoMs;
+    chronoInterval = setInterval(updateChrono, 100);
+    chronoRunning = true;
+    btn.textContent = 'Pausar';
+    logActivity('Cronómetro iniciado','info');
+  } else {
+    clearInterval(chronoInterval);
+    chronoRunning = false;
+    btn.textContent = 'Continuar';
+    logActivity('Cronómetro pausado','warn');
+  }
+}
+function updateChrono() {
+  chronoMs = Date.now() - chronoStart;
+  const h=Math.floor(chronoMs/3600000), m=Math.floor((chronoMs%3600000)/60000), s=Math.floor((chronoMs%60000)/1000), ds=Math.floor((chronoMs%1000)/100);
+  document.getElementById('chrono-display').textContent = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${ds}`;
+}
+function resetChrono() {
+  clearInterval(chronoInterval);
+  chronoRunning = false; chronoMs = 0;
+  document.getElementById('chrono-display').textContent = '00:00:00.0';
+  document.getElementById('chrono-btn').textContent = 'Iniciar';
+  document.getElementById('laps-list').innerHTML = '';
+}
+let lapCount = 0;
+function lapChrono() {
+  if (!chronoRunning) return;
+  lapCount++;
+  const ms = Date.now() - chronoStart;
+  const h=Math.floor(ms/3600000), m=Math.floor((ms%3600000)/60000), s=Math.floor((ms%60000)/1000), ds=Math.floor((ms%1000)/100);
+  const t = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${ds}`;
+  const el = document.getElementById('laps-list');
+  el.innerHTML += `<div style="padding:3px 0;border-bottom:1px solid var(--border)"><span style="color:var(--accent)">Vuelta ${lapCount}</span> — ${t}</div>`;
+}
+
+// TEMPORIZADOR
+function toggleTimer() {
+  const btn = document.getElementById('timer-btn');
+  if (!timerRunning) {
+    if (timerRemaining === 0) {
+      const h = parseInt(document.getElementById('t-h').value)||0;
+      const m = parseInt(document.getElementById('t-m').value)||0;
+      const s = parseInt(document.getElementById('t-s').value)||0;
+      timerRemaining = h*3600+m*60+s;
+      if (timerRemaining <= 0) { notify('Ingresa un tiempo válido','err'); return; }
+    }
+    timerInterval = setInterval(timerTick, 1000);
+    timerRunning = true;
+    btn.textContent = 'Pausar';
+    logActivity('Temporizador iniciado','info');
+  } else {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    btn.textContent = 'Continuar';
+  }
+}
+function timerTick() {
+  timerRemaining--;
+  const el = document.getElementById('timer-display');
+  const h=Math.floor(timerRemaining/3600), m=Math.floor((timerRemaining%3600)/60), s=timerRemaining%60;
+  el.textContent = h>0 ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+  if (timerRemaining <= 10) el.style.color = 'var(--accent2)';
+  if (timerRemaining <= 0) {
+    clearInterval(timerInterval); timerRunning = false; timerRemaining = 0;
+    document.getElementById('timer-btn').textContent = 'Iniciar';
+    el.style.color = 'var(--accent4)';
+    el.textContent = '¡Tiempo!';
+    notify('Temporizador completado','ok');
+    logActivity('Temporizador finalizado','ok');
+    setTimeout(()=>{ el.style.color = 'var(--text)'; el.textContent = '00:00'; },3000);
+  }
+}
+function resetTimer() {
+  clearInterval(timerInterval); timerRunning = false; timerRemaining = 0;
+  document.getElementById('timer-btn').textContent = 'Iniciar';
+  const el = document.getElementById('timer-display');
+  el.style.color = 'var(--text)';
+  const h=parseInt(document.getElementById('t-h').value)||0, m=parseInt(document.getElementById('t-m').value)||5, s=parseInt(document.getElementById('t-s').value)||0;
+  timerRemaining = h*3600+m*60+s;
+  el.textContent = h>0 ? `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+// ---- RAM DISK ----
+function createFile(name, content) {
+  if (!name || !name.trim()) return { ok:false, msg:'Nombre inválido' };
+  name = name.trim();
+  if (KratOS.files.has(name)) return { ok:false, msg:'Ya existe un archivo con ese nombre' };
+  const size = new Blob([content]).size;
+  // Verificar espacio disponible para archivos de usuario (7 MB)
+  if (size > getUserFreeBytes()) return { ok:false, msg:'Sin espacio suficiente en RAM' };
+  const now = new Date();
+  KratOS.files.set(name, { id:uuid(), name, content, size, createdAt:now, modifiedAt:now });
+  logActivity(`Archivo creado: ${name} (${fmtSize(size)})`,'ok');
+  updateMemoryStats();
+  return { ok:true };
+}
+function readFile(name) {
+  if (!KratOS.files.has(name)) return { ok:false, msg:`Archivo no encontrado: ${name}` };
+  return { ok:true, file:KratOS.files.get(name) };
+}
+function editFile(name, content) {
+  if (!KratOS.files.has(name)) return { ok:false, msg:`Archivo no encontrado: ${name}` };
+  const f = KratOS.files.get(name);
+  const newSize = new Blob([content]).size;
+  const delta = newSize - f.size;
+  // Solo verificar si el archivo CRECE y si hay espacio libre para esa diferencia
+  if (delta > 0 && delta > getUserFreeBytes()) return { ok:false, msg:'Sin espacio en RAM para guardar los cambios' };
+  f.content = content; f.size = newSize; f.modifiedAt = new Date();
+  logActivity(`Archivo editado: ${name} (${fmtSize(newSize)})`,'info');
+  updateMemoryStats();
+  return { ok:true };
+}
+function deleteFile(name) {
+  if (!KratOS.files.has(name)) return { ok:false, msg:`Archivo no encontrado: ${name}` };
+  const f = KratOS.files.get(name);
+  KratOS.files.delete(name);
+  logActivity(`Archivo eliminado: ${name} (liberados ${fmtSize(f.size)})`,'warn');
+  updateMemoryStats();
+  return { ok:true };
+}
+function renameFile(oldName, newName) {
+  if (!oldName || !newName || !newName.trim()) return { ok:false, msg:'Nombre inválido' };
+  newName = newName.trim();
+  if (!KratOS.files.has(oldName)) return { ok:false, msg:`Archivo no encontrado: ${oldName}` };
+  if (KratOS.files.has(newName)) return { ok:false, msg:`Ya existe: ${newName}` };
+  const f = KratOS.files.get(oldName);
+  f.name = newName;
+  KratOS.files.delete(oldName);
+  KratOS.files.set(newName, f);
+  // Renombrar NO afecta el tamaño ni la RAM — solo actualiza la lista visual
+  logActivity(`Archivo renombrado: ${oldName} → ${newName}`,'info');
+  updateMemoryStats();
+  return { ok:true };
+}
+function listFiles() { return Array.from(KratOS.files.values()); }
+
+// ---- UI RAM DISK ----
+function renderFileList() {
+  // Actualizar estadísticas de memoria antes de renderizar
+  updateMemoryStats();
+  const files = listFiles();
+  const body = document.getElementById('file-list-body');
+  if (!body) return;
+  if (files.length === 0) {
+    body.innerHTML = '<div class="empty-state"><div class="empty-icon">◫</div><div class="empty-text">No hay archivos en el disco RAM</div></div>';
+    return;
+  }
+  body.innerHTML = files.map(f => `
+    <div class="file-row">
+      <div class="file-name"><span class="file-icon">📄</span>${f.name}</div>
+      <div class="file-cell">${fmtSize(f.size)}</div>
+      <div class="file-cell">${fmtDateTime(f.createdAt)}</div>
+      <div class="file-cell">${fmtDateTime(f.modifiedAt)}</div>
+      <div class="file-actions">
+        <button class="btn btn-ghost btn-xs" onclick="openReadModal('${f.name}')" title="Ver">👁</button>
+        <button class="btn btn-ghost btn-xs" onclick="openEditModal('${f.name}')" title="Editar">✏</button>
+        <button class="btn btn-ghost btn-xs" onclick="openRenameModal('${f.name}')" title="Renombrar">🔤</button>
+        <button class="btn btn-danger btn-xs" onclick="deleteFileUI('${f.name}')" title="Eliminar">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function deleteFileUI(name) {
+  const r = deleteFile(name);
+  if (!r.ok) notify(r.msg,'err');
+  else { notify(`Archivo "${name}" eliminado`,'ok'); renderFileList(); }
+}
+function openCreateModal() {
+  document.getElementById('create-name').value = '';
+  document.getElementById('create-content').value = '';
+  document.getElementById('modal-create').style.display = 'flex';
+  setTimeout(()=>document.getElementById('create-name').focus(),100);
+}
+function createFileConfirm() {
+  const name = document.getElementById('create-name').value;
+  const content = document.getElementById('create-content').value;
+  const r = createFile(name, content);
+  if (!r.ok) { notify(r.msg,'err'); return; }
+  notify(`Archivo "${name}" creado`,'ok');
+  closeModal('modal-create');
+  renderFileList();
+}
+function openReadModal(name) {
+  const r = readFile(name);
+  if (!r.ok) { notify(r.msg,'err'); return; }
+  document.getElementById('read-modal-title').textContent = '📄 ' + name;
+  document.getElementById('read-content').textContent = r.file.content || '(archivo vacío)';
+  document.getElementById('modal-read').style.display = 'flex';
+}
+function openEditModal(name) {
+  const r = readFile(name);
+  if (!r.ok) { notify(r.msg,'err'); return; }
+  KratOS.currentEditId = name;
+  document.getElementById('edit-modal-title').textContent = 'Editar — ' + name;
+  document.getElementById('edit-content').value = r.file.content;
+  document.getElementById('modal-edit').style.display = 'flex';
+  setTimeout(()=>document.getElementById('edit-content').focus(),100);
+}
+function saveEditConfirm() {
+  const content = document.getElementById('edit-content').value;
+  const r = editFile(KratOS.currentEditId, content);
+  if (!r.ok) { notify(r.msg,'err'); return; }
+  notify('Cambios guardados','ok');
+  closeModal('modal-edit');
+  renderFileList();
+}
+function openRenameModal(name) {
+  KratOS.currentRenameId = name;
+  document.getElementById('rename-input').value = name;
+  document.getElementById('modal-rename').style.display = 'flex';
+  setTimeout(()=>{ const inp=document.getElementById('rename-input'); inp.focus(); inp.select(); },100);
+}
+function renameConfirm() {
+  const newName = document.getElementById('rename-input').value;
+  const r = renameFile(KratOS.currentRenameId, newName);
+  if (!r.ok) { notify(r.msg,'err'); return; }
+  notify(`Renombrado a "${newName}"`, 'ok');
+  closeModal('modal-rename');
+  renderFileList();
+}
+function closeModal(id, e) {
+  if (e && e.target !== document.getElementById(id)) return;
+  document.getElementById(id).style.display = 'none';
+}
+
+// ---- TERMINAL ----
+function termPrint(text, cls='term-out') {
+  const out = document.getElementById('term-output');
+  if (!out) return;
+  const line = document.createElement('div');
+  line.className = 'term-line '+cls;
+  line.innerHTML = text;
+  out.appendChild(line);
+  out.scrollTop = out.scrollHeight;
+}
+function termPromptLine(cmd) {
+  const out = document.getElementById('term-output');
+  if (!out) return;
+  const line = document.createElement('div');
+  line.className = 'term-line';
+  line.innerHTML = `<span class="term-prompt">kratos@embedded:~$</span> <span class="term-cmd">${cmd}</span>`;
+  out.appendChild(line);
+  out.scrollTop = out.scrollHeight;
+}
+
+function handleTermKey(e) {
+  if (e.key === 'Enter') {
+    const inp = document.getElementById('term-input');
+    const cmd = inp.value.trim();
+    if (!cmd) return;
+    KratOS.cmdHistory.unshift(cmd);
+    KratOS.cmdHistoryIdx = -1;
+    inp.value = '';
+    termPromptLine(cmd);
+    executeCommand(cmd);
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (KratOS.cmdHistoryIdx < KratOS.cmdHistory.length-1) {
+      KratOS.cmdHistoryIdx++;
+      document.getElementById('term-input').value = KratOS.cmdHistory[KratOS.cmdHistoryIdx];
+    }
+  } else if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (KratOS.cmdHistoryIdx > 0) {
+      KratOS.cmdHistoryIdx--;
+      document.getElementById('term-input').value = KratOS.cmdHistory[KratOS.cmdHistoryIdx];
+    } else { KratOS.cmdHistoryIdx = -1; document.getElementById('term-input').value = ''; }
+  } else if (e.key === 'Tab') {
+    e.preventDefault();
+    const inp = document.getElementById('term-input');
+    const val = inp.value;
+    const parts = val.split(' ');
+    if (parts.length >= 2) {
+      const partial = parts[parts.length-1];
+      const match = listFiles().find(f => f.name.startsWith(partial));
+      if (match) { parts[parts.length-1] = match.name; inp.value = parts.join(' '); }
+    }
+  }
+}
+
+function executeCommand(raw) {
+  const parts = raw.trim().split(/\s+/);
+  const cmd = parts[0].toLowerCase();
+  const args = parts.slice(1);
+
+  switch(cmd) {
+    case 'help':
+      termPrint('<span style="color:var(--accent);font-weight:700">Comandos disponibles en KRAT OS:</span>', 'term-out');
+      const cmds = [
+        ['help','Muestra este listado de comandos'],
+        ['time','Muestra la hora actual del sistema'],
+        ['date','Muestra la fecha completa actual'],
+        ['uptime','Muestra el tiempo de actividad del sistema'],
+        ['clear','Limpia la pantalla de la terminal'],
+        ['ls','Lista todos los archivos del disco RAM'],
+        ['create &lt;nombre&gt;','Crea un nuevo archivo vacío'],
+        ['read &lt;nombre&gt;','Muestra el contenido de un archivo'],
+        ['delete &lt;nombre&gt;','Elimina un archivo del disco RAM'],
+        ['rename &lt;viejo&gt; &lt;nuevo&gt;','Renombra un archivo'],
+        ['memory','Muestra estadísticas de memoria RAM'],
+        ['exit','Regresa al panel principal (Dashboard)'],
+      ];
+      cmds.forEach(([c,d]) => termPrint(`  <span style="color:var(--accent5);width:240px;display:inline-block">${c}</span><span style="color:var(--text2)">${d}</span>`));
+      break;
+    case 'time':
+      termPrint(`Hora actual: <span style="color:var(--accent5)">${fmtTime(new Date())}</span>`);
+      break;
+    case 'date':
+      const nd = new Date();
+      const days=['Domingo','Lunes','Martes','Miércoles','Jueves','Viernes','Sábado'];
+      const months=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+      termPrint(`Fecha: <span style="color:var(--accent5)">${days[nd.getDay()]}, ${nd.getDate()} de ${months[nd.getMonth()]} de ${nd.getFullYear()}</span>`);
+      break;
+    case 'uptime':
+      const el = Math.floor((Date.now()-KratOS.startTime)/1000);
+      const h2=Math.floor(el/3600),m2=Math.floor((el%3600)/60),s2=el%60;
+      termPrint(`Uptime del sistema: <span style="color:var(--accent5)">${String(h2).padStart(2,'0')}h ${String(m2).padStart(2,'0')}m ${String(s2).padStart(2,'0')}s</span>`);
+      break;
+    case 'clear':
+      document.getElementById('term-output').innerHTML = '';
+      termPrint('Terminal limpiada.', 'term-ok');
+      break;
+    case 'ls':
+      const files = listFiles();
+      if (files.length === 0) { termPrint('El disco RAM está vacío.', 'term-warn'); break; }
+      termPrint(`<span style="color:var(--accent)">Disco RAM — ${files.length} archivo${files.length!==1?'s':''}</span>`);
+      termPrint(`<span style="color:var(--text3)">  Nombre                      Tamaño      Modificado</span>`);
+      files.forEach(f => {
+        const name = f.name.padEnd(30,' ');
+        const sz = fmtSize(f.size).padEnd(12,' ');
+        termPrint(`  <span style="color:var(--accent5)">${name}</span><span style="color:var(--text2)">${sz}</span><span style="color:var(--text3)">${fmtDateTime(f.modifiedAt)}</span>`);
+      });
+      break;
+    case 'create':
+      if (!args[0]) { termPrint('Uso: create &lt;nombre-archivo&gt;', 'term-err'); break; }
+      const cr = createFile(args[0], '');
+      if (!cr.ok) termPrint(`Error: ${cr.msg}`, 'term-err');
+      else { termPrint(`Archivo creado: <span style="color:var(--accent4)">${args[0]}</span>`, 'term-ok'); renderFileList(); }
+      break;
+    case 'read':
+      if (!args[0]) { termPrint('Uso: read &lt;nombre-archivo&gt;', 'term-err'); break; }
+      const rr = readFile(args[0]);
+      if (!rr.ok) { termPrint(`Error: ${rr.msg}`, 'term-err'); break; }
+      termPrint(`<span style="color:var(--accent)">— ${args[0]} (${fmtSize(rr.file.size)}) —</span>`);
+      if (!rr.file.content) termPrint('(archivo vacío)', 'term-warn');
+      else rr.file.content.split('\n').forEach(line => termPrint(line || '&nbsp;'));
+      break;
+    case 'delete':
+      if (!args[0]) { termPrint('Uso: delete &lt;nombre-archivo&gt;', 'term-err'); break; }
+      const dr = deleteFile(args[0]);
+      if (!dr.ok) termPrint(`Error: ${dr.msg}`, 'term-err');
+      else { termPrint(`Archivo eliminado: <span style="color:var(--accent2)">${args[0]}</span>`, 'term-ok'); renderFileList(); }
+      break;
+    case 'rename':
+      if (!args[0]||!args[1]) { termPrint('Uso: rename &lt;nombre-actual&gt; &lt;nuevo-nombre&gt;', 'term-err'); break; }
+      const rnr = renameFile(args[0], args[1]);
+      if (!rnr.ok) termPrint(`Error: ${rnr.msg}`, 'term-err');
+      else { termPrint(`Renombrado: <span style="color:var(--accent5)">${args[0]}</span> → <span style="color:var(--accent4)">${args[1]}</span>`, 'term-ok'); renderFileList(); }
+      break;
+    case 'memory':
+      const used2 = getUsedBytes(), free2 = getFreeBytes(), userB2 = getUserBytes();
+      const pct2 = Math.round(used2/RAM_LIMIT*100);
+      termPrint('<span style="color:var(--accent)">Estadísticas de Memoria RAM</span>');
+      termPrint(`  Total disponible:  <span style="color:var(--accent5)">8.00 MB</span>`);
+      termPrint(`  Sistema (reservado): <span style="color:var(--accent5)">${fmtSize(SYS_RESERVED)}</span>`);
+      termPrint(`  Archivos usuario:  <span style="color:var(--accent5)">${fmtSize(userB2)}</span>`);
+      termPrint(`  Total utilizado:   <span style="color:var(--accent5)">${fmtSize(used2)} (${pct2}%)</span>`);
+      termPrint(`  Libre:             <span style="color:var(--accent4)">${fmtSize(free2)}</span>`);
+      termPrint(`  Archivos en disco: <span style="color:var(--accent5)">${KratOS.files.size}</span>`);
+      break;
+    case 'exit':
+      showPanel('dashboard', document.querySelector('.nav-item'));
+      termPrint('Redirigiendo al Dashboard...', 'term-info');
+      break;
+    default:
+      termPrint(`Comando no reconocido: <span style="color:var(--accent2)">${cmd}</span>. Escribe <span style="color:var(--accent)">help</span> para ver los comandos disponibles.`, 'term-err');
+  }
+}
+
+// ---- GUIDE ----
+function showGuide(id, el) {
+  document.querySelectorAll('.guide-page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.guide-nav-item').forEach(i=>i.classList.remove('active'));
+  document.getElementById('guide-'+id).classList.add('active');
+  el.classList.add('active');
+}
+
+// ---- INIT ----
+function init() {
+  // Terminal banner
+  termPrint('<span style="color:var(--accent);font-size:13px;font-weight:700">KRAT OS v1.0.0 — Sistema Embebido Simulado</span>');
+  termPrint('<span style="color:var(--text3)">Copyright 2024 KRAT OS — Proyecto Educativo</span>');
+  termPrint('<span style="color:var(--text2)">Sistema listo. Escribe <span style="color:var(--accent)">help</span> para ver los comandos disponibles.</span>');
+  termPrint('');
+
+  // Datos de ejemplo
+  createFile('README.txt', 'KRAT OS - Sistema Embebido Simulado\n\nBienvenido al simulador educativo KRAT OS.\nEste archivo existe únicamente en la memoria RAM del sistema.\nAl cerrar esta ventana, todo el contenido se perderá.\n\nModulos disponibles:\n- Dashboard: estado general del sistema\n- Disco RAM: gestión de archivos en memoria\n- Reloj: tiempo real, cronómetro y temporizador\n- Terminal: interfaz de línea de comandos\n- Guia Técnica: documentación educativa');
+  createFile('sistema.log', '[BOOT] KRAT OS iniciado\n[INFO] Disco RAM montado: 8 MB\n[INFO] Reloj del sistema sincronizado\n[INFO] Terminal lista\n[OK] Sistema operativo cargado correctamente');
+
+  logActivity('Sistema KRAT OS iniciado correctamente','ok');
+  logActivity('Disco RAM montado (8 MB)','info');
+  logActivity('Archivos de ejemplo cargados','info');
+  logActivity('Terminal inicializada','info');
+
+  renderFileList();
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>
