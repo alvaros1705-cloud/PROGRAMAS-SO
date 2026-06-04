@@ -1,0 +1,134 @@
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:linear-gradient(135deg,#0f172a,#1e293b);
+    color:white;
+    min-height:100vh;
+    padding:30px;
+}
+
+.container{
+    max-width:1200px;
+    margin:auto;
+}
+
+header{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+header h1{
+    font-size:3rem;
+    color:#38bdf8;
+}
+
+header p{
+    color:#cbd5e1;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+    margin-bottom:30px;
+}
+
+.card{
+    background:#1e293b;
+    border-radius:20px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 10px 20px rgba(0,0,0,.4);
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-5px);
+}
+
+.proceso{
+    border-left:6px solid #22c55e;
+}
+
+.recurso{
+    border-left:6px solid #f59e0b;
+}
+
+.controls{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+button{
+    padding:14px 25px;
+    border:none;
+    margin:10px;
+    border-radius:10px;
+    cursor:pointer;
+    font-size:16px;
+    font-weight:bold;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+
+button:nth-child(1){
+    background:#22c55e;
+    color:white;
+}
+
+button:nth-child(2){
+    background:#ef4444;
+    color:white;
+}
+
+button:nth-child(3){
+    background:#3b82f6;
+    color:white;
+}
+
+.resultado{
+    background:#1e293b;
+    padding:25px;
+    border-radius:20px;
+    margin-bottom:30px;
+}
+
+#estado{
+    margin-top:15px;
+    font-size:20px;
+    text-align:center;
+    font-weight:bold;
+}
+
+.normal{
+    color:#22c55e;
+}
+
+.bloqueo{
+    color:#ef4444;
+    animation:pulse 1s infinite;
+}
+
+@keyframes pulse{
+    50%{
+        opacity:.5;
+    }
+}
+
+.coffman{
+    background:#1e293b;
+    padding:25px;
+    border-radius:20px;
+}
+
+.coffman ul{
+    margin-top:15px;
+    line-height:2;
+}

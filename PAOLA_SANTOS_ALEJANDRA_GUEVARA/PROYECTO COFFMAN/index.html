@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Deadlock - Coffman</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="container">
+
+    <header>
+        <h1>🔒 Simulador de Deadlock</h1>
+        <p>Condiciones de Coffman en Sistemas Multitarea</p>
+    </header>
+
+    <section class="cards">
+
+        <div class="card proceso">
+            <h2>Proceso P1</h2>
+            <p id="p1">Esperando...</p>
+        </div>
+
+        <div class="card recurso">
+            <h2>Recurso R1</h2>
+            <p id="r1">Libre</p>
+        </div>
+
+        <div class="card proceso">
+            <h2>Proceso P2</h2>
+            <p id="p2">Esperando...</p>
+        </div>
+
+        <div class="card recurso">
+            <h2>Recurso R2</h2>
+            <p id="r2">Libre</p>
+        </div>
+
+    </section>
+
+    <section class="controls">
+        <button onclick="iniciar()">▶ Iniciar</button>
+        <button onclick="deadlock()">⚠ Generar Deadlock</button>
+        <button onclick="reiniciar()">🔄 Reiniciar</button>
+    </section>
+
+    <section class="resultado">
+        <h2>Estado del Sistema</h2>
+        <div id="estado">
+            Esperando simulación...
+        </div>
+    </section>
+
+    <section class="coffman">
+        <h2>Condiciones de Coffman</h2>
+
+        <ul>
+            <li>✔ Exclusión Mutua</li>
+            <li>✔ Retención y Espera</li>
+            <li>✔ No Expropiación</li>
+            <li>✔ Espera Circular</li>
+        </ul>
+    </section>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
