@@ -1,0 +1,89 @@
+body {
+  font-family: Segoe UI, sans-serif;
+  background: #0f172a;
+  color: white;
+  padding: 20px;
+}
+
+.container {
+  max-width: 1200px;
+  margin: auto;
+}
+
+.card {
+  background: #1e293b;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+input {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 6px;
+}
+
+button {
+  padding: 10px 15px;
+  margin-right: 10px;
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  background: #3b82f6;
+  color: white;
+  transition: background 0.3s;
+}
+
+button:hover {
+  background: #2563eb;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th, td {
+  border: 1px solid #475569;
+  padding: 8px;
+  text-align: center;
+}
+
+th {
+  background: #334155;
+}
+
+canvas {
+  background: white;
+  border-radius: 8px;
+  padding: 10px;
+}
+
+/* --- NUEVAS SECCIONES --- */
+.theory-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+}
+
+.theory-card {
+  background: #334155;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+.theory-card h3 {
+  margin-top: 0;
+  color: #3b82f6;
+}
+
+ul {
+  margin: 10px 0;
+  padding-left: 20px;
+}
+
+li {
+  margin-bottom: 6px;
+}

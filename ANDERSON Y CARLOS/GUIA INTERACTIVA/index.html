@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disk Guardian Pro</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <!-- HEADER -->
+        <header>
+            <h1>💾 Disk Guardian Pro</h1>
+            <p>Simulador de errores comunes en discos y diagnóstico de soluciones</p>
+        </header>
+
+        <!-- DASHBOARD -->
+        <section class="dashboard">
+
+            <!-- ESTADO DEL DISCO -->
+            <div class="status-card">
+
+                <h2>Estado del Disco</h2>
+
+                <div class="disk-icon">
+                    💽
+                </div>
+
+                <h3 id="disk-status" class="success">
+                    Operativo
+                </h3>
+
+                <div class="health-container">
+                    <div id="health-bar"></div>
+                </div>
+
+                <p>
+                    Salud del disco:
+                    <span id="health-text">100%</span>
+                </p>
+
+            </div>
+
+            <!-- SIMULACIÓN -->
+            <div class="simulation-card">
+
+                <h2>Simular Error</h2>
+
+                <button class="error-btn" data-error="badsector">
+                    - Sectores Defectuosos
+                </button>
+
+                <button class="error-btn" data-error="full">
+                    - Disco Lleno
+                </button>
+
+                <button class="error-btn" data-error="smart">
+                    - Error SMART
+                </button>
+
+                <button class="error-btn" data-error="corruption">
+                    - Corrupción del Sistema de Archivos
+                </button>
+
+                <button class="error-btn" data-error="overheat">
+                    - Sobrecalentamiento
+                </button>
+
+                <button class="error-btn" data-error="readwrite">
+                    - Error de Lectura/Escritura
+                </button>
+
+                <button class="error-btn" data-error="fragmentation">
+                    - Fragmentación Excesiva
+                </button>
+
+                <button class="error-btn" data-error="ssdwear">
+                    - Desgaste de SSD
+                </button>
+
+                <button class="error-btn" data-error="malware">
+                    - Malware
+                </button>
+
+                <button class="error-btn" data-error="mechanical">
+                    - Fallo Mecánico HDD
+                </button>
+
+            </div>
+
+        </section>
+
+        <!-- DIAGNÓSTICO -->
+        <section class="diagnostic-card">
+
+            <h2>Diagnóstico</h2>
+
+            <div id="diagnostic-content">
+
+                <p>
+                    Selecciona una falla para iniciar la simulación.
+                </p>
+
+            </div>
+
+        </section>
+
+        <!-- PREGUNTA -->
+        <section id="question-section" class="hidden">
+
+            <h2> Diagnóstico del Técnico</h2>
+
+            <p>
+                ¿Cuál sería la mejor solución para este problema?
+            </p>
+
+            <div id="answers-container"></div>
+
+        </section>
+
+        <!-- RESULTADO -->
+        <section id="result-section" class="hidden">
+
+            <h2 id="result-title"></h2>
+
+            <p id="result-message"></p>
+
+        </section>
+
+        <!-- HISTORIAL -->
+        <section class="history-card">
+
+            <h2> Historial de Eventos</h2>
+
+            <ul id="history-list"></ul>
+
+        </section>
+
+        <!-- INFORMACIÓN EDUCATIVA -->
+        <section class="info-section">
+
+            <h2> Información sobre Errores de Disco</h2>
+
+            <div class="info-grid">
+
+                <div class="info-card">
+                    <h3> Sectores Defectuosos</h3>
+                    <p>
+                        Son áreas físicas dañadas del disco que ya no pueden almacenar información correctamente.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3> Disco Lleno</h3>
+                    <p>
+                        Ocurre cuando el almacenamiento disponible es insuficiente para nuevas operaciones.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3> Error SMART</h3>
+                    <p>
+                        El sistema de monitoreo interno detecta posibles fallas futuras del dispositivo.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3> Corrupción del Sistema de Archivos</h3>
+                    <p>
+                        La estructura lógica que organiza los datos presenta daños o inconsistencias.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3> Sobrecalentamiento</h3>
+                    <p>
+                        Temperaturas elevadas pueden afectar el rendimiento y la vida útil del disco.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3> Lectura/Escritura</h3>
+                    <p>
+                        El disco tiene problemas para acceder o guardar información correctamente.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3> Fragmentación</h3>
+                    <p>
+                        Los archivos se encuentran dispersos en distintas zonas del disco.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3> Desgaste SSD</h3>
+                    <p>
+                        Las memorias NAND tienen un límite de ciclos de escritura.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3> Malware</h3>
+                    <p>
+                        Programas maliciosos pueden alterar o destruir información almacenada.
+                    </p>
+                </div>
+
+                <div class="info-card">
+                    <h3> Fallo Mecánico HDD</h3>
+                    <p>
+                        Daños físicos en platos o cabezales impiden el funcionamiento normal del disco.
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>

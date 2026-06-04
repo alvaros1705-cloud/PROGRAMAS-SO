@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Disk Scheduling Simulator Pro</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="container">
+    <h1>💾 Simulador de Planificación de Discos</h1>
+    <div class="card">
+      <label>Posición inicial del cabezal:</label>
+      <input id="head" type="number" value="53">
+      <label>Solicitudes (separadas por coma):</label>
+      <input id="requests" value="98,183,37,122,14,124,65,67">
+      <label>Tamaño del disco:</label>
+      <input id="diskSize" type="number" value="200">
+      <button onclick="runSimulation()">Ejecutar Simulación</button>
+      <button onclick="randomWorkload()">Carga Aleatoria</button>
+      <button onclick="runExperiment()">Experimento x100</button>
+    </div>
+
+    <div class="card">
+      <h2>Resultados</h2>
+      <table id="resultsTable">
+        <thead>
+          <tr>
+            <th>Algoritmo</th>
+            <th>Distancia Total</th>
+            <th>Promedio</th>
+            <th>Tiempo de Búsqueda (ms)</th>
+            <th>Throughput</th>
+            <th>Tiempo Espera</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <canvas id="chart"></canvas>
+    </div>
+
+    <div class="card">
+      <h2>Conclusión Automática</h2>
+      <p id="conclusion"></p>
+    </div>
+
+    <div class="card">
+      <h2>Interpretación</h2>
+      <p id="interpretation"></p>
+    </div>
+
+    <div class="card">
+      <h2>Fundamentos Teóricos</h2>
+      <div class="theory-grid">
+        <div class="theory-card">
+          <h3>FCFS</h3>
+          <p>First Come First Served atiende las solicitudes en el orden exacto de llegada. Es sencillo de implementar pero puede generar recorridos largos del cabezal.</p>
+        </div>
+        <div class="theory-card">
+          <h3>SSTF</h3>
+          <p>Shortest Seek Time First selecciona la solicitud más cercana al cabezal, reduciendo el tiempo de búsqueda.</p>
+        </div>
+        <div class="theory-card">
+          <h3>SCAN</h3>
+          <p>Conocido como algoritmo ascensor. El cabezal se mueve en una dirección atendiendo solicitudes hasta el extremo.</p>
+        </div>
+        <div class="theory-card">
+          <h3>LOOK</h3>
+          <p>Similar a SCAN pero solo avanza hasta la última solicitud existente.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Relación con Hardware de Entrada/Salida</h2>
+      <p>Los algoritmos de planificación de discos forman parte del subsistema de Entrada/Salida del Sistema Operativo...</p>
+      <ul>
+        <li>Discos HDD y SSD</li>
+        <li>Controladores SATA y NVMe</li>
+        <li>DMA (Direct Memory Access)</li>
+        <li>Buses de comunicación</li>
+        <li>Controladores de almacenamiento</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Controladores de Disco</h2>
+      <p>Los controladores de disco reciben solicitudes de lectura y escritura...</p>
+      <ul>
+        <li>Tiempo de búsqueda</li>
+        <li>Latencia</li>
+        <li>Movimiento mecánico</li>
+        <li>Tiempo de respuesta</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h2>Bloqueos (Deadlocks)</h2>
+      <p>Un deadlock ocurre cuando varios procesos esperan recursos...</p>
+      <h3>Condiciones de Coffman</h3>
+      <ul>
+        <li>Exclusión mutua</li>
+        <li>Retención y espera</li>
+        <li>No apropiación</li>
+        <li>Espera circular</li>
+      </ul>
+      <h3>Prevención</h3>
+      <p>Eliminar alguna condición de Coffman.</p>
+      <h3>Detección</h3>
+      <p>Uso de grafos de asignación de recursos.</p>
+      <h3>Evitación</h3>
+      <p>Aplicación del Algoritmo del Banquero.</p>
+    </div>
+
+    <div class="card">
+      <h2>Recorridos</h2>
+      <div id="paths"></div>
+    </div>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
