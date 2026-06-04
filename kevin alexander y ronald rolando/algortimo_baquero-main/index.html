@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Algoritmo del Banquero</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <!-- ORBS DE FONDO -->
+    <div class="orb orb1"></div>
+    <div class="orb orb2"></div>
+    <div class="orb orb3"></div>
+
+    <!-- ANNOUNCEMENT BAR -->
+    <div class="announcement-bar">
+        <p> <span class="highlight">SISTEMAS OPERATIVOS:</span> Prevención de Bloqueos · Estados Seguros · Administración de Recursos</p>
+    </div>
+
+    <!-- NAVEGACIÓN -->
+    <nav class="main-nav" id="mainNav">
+        <div class="nav-container">
+            <a href="#" class="logo"><svg width="20" height="20" fill="none" stroke="#4DDCFF" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> <span>BankerAlgo</span></a>
+
+            <ul class="nav-links" id="navLinks">
+                <li><a href="#hero" class="active">Inicio</a></li>
+                <li><a href="#deadlock">Deadlock</a></li>
+                <li><a href="#algoritmo">Algoritmo</a></li>
+                <li><a href="#componentes">Componentes</a></li>
+                <li><a href="#funcionamiento">Funcionamiento</a></li>
+                <li><a href="#pros-cons">Ventajas y Desventajas</a></li>
+            </ul>
+
+            <button class="menu-toggle" id="menuToggle" aria-label="Menú">
+                <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+        </div>
+
+        <!-- Menú móvil -->
+        <div class="mobile-menu" id="mobileMenu">
+            <a href="#hero" class="active">Inicio</a>
+            <a href="#deadlock">Deadlock</a>
+            <a href="#algoritmo">Algoritmo</a>
+            <a href="#componentes">Componentes</a>
+            <a href="#funcionamiento">Funcionamiento</a>
+            <a href="#pros-cons">Ventajas y Desventajas</a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero" id="hero">
+        <div class="hero-glow"></div>
+        <div class="hero-triangle"></div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <div class="hero-badge">Sistemas Operativos · Dijkstra · 1965</div>
+                <h1>ALGORITMO DEL <span class="hero-accent">BANQUERO</span></h1>
+                <p class="hero-subtitle">Un método clásico de prevención de deadlocks que garantiza que el sistema siempre permanezca en un <strong>estado seguro</strong> antes de asignar recursos.</p>
+                <div class="hero-buttons">
+                    <a href="#algoritmo" class="btn-primary">Explorar Algoritmo →</a>
+                    <a href="#funcionamiento" class="btn-outline">Ver Funcionamiento</a>
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-num">4</span>
+                        <span class="stat-label">Condiciones Deadlock</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-num">6</span>
+                        <span class="stat-label">Pasos del Algoritmo</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-num">100%</span>
+                        <span class="stat-label">Prevención Deadlocks</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="hero-diagram">
+                    <div class="diagram-center">
+                        <svg width="28" height="28" fill="none" stroke="#4DDCFF" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M3 10l9-7 9 7M5 10v9a1 1 0 001 1h3v-4h6v4h3a1 1 0 001-1v-9"/></svg>
+                        <p>Banquero</p>
+                    </div>
+                    <div class="diagram-node n1"><span>P1</span></div>
+                    <div class="diagram-node n2"><span>P2</span></div>
+                    <div class="diagram-node n3"><span>P3</span></div>
+                    <div class="diagram-node n4"><span>P4</span></div>
+                    <svg class="diagram-lines" viewBox="0 0 300 300">
+                        <line x1="150" y1="150" x2="150" y2="30" stroke="rgba(0,255,255,0.3)" stroke-width="1.5" stroke-dasharray="5,4"/>
+                        <line x1="150" y1="150" x2="270" y2="150" stroke="rgba(0,255,255,0.3)" stroke-width="1.5" stroke-dasharray="5,4"/>
+                        <line x1="150" y1="150" x2="150" y2="270" stroke="rgba(0,255,255,0.3)" stroke-width="1.5" stroke-dasharray="5,4"/>
+                        <line x1="150" y1="150" x2="30" y2="150" stroke="rgba(0,255,255,0.3)" stroke-width="1.5" stroke-dasharray="5,4"/>
+                    </svg>
+                </div>
+                <p class="hero-diagram-caption">El "banquero" (SO) evalúa cada solicitud antes de asignar recursos</p>
+            </div>
+        </div>
+        <div class="hero-wave">
+            <svg viewBox="0 0 1440 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M0 80L60 72C120 64 240 48 360 44C480 40 600 48 720 52C840 56 960 60 1080 58C1200 56 1320 52 1380 50L1440 48V80H0Z" fill="rgba(8,20,33,1)"/>
+            </svg>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: DEADLOCK -->
+    <section class="section-dark" id="deadlock">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Fundamentos</div>
+                <h2>¿QUÉ ES UN <span class="accent">DEADLOCK</span>?</h2>
+                <p>Un bloqueo que paraliza completamente la ejecución de procesos</p>
+            </div>
+
+            <div class="two-col">
+                <div class="info-card glass">
+                    <div class="info-icon"><svg width="36" height="36" fill="none" stroke="#4DDCFF" stroke-width="1.5" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2" stroke-linecap="round" stroke-linejoin="round"/><path stroke-linecap="round" stroke-linejoin="round" d="M8 11V7a4 4 0 018 0v4"/></svg></div>
+                    <h3>Definición</h3>
+                    <p>Un <strong>deadlock o bloqueo</strong> ocurre cuando varios procesos quedan esperando recursos que están siendo utilizados por otros procesos. Como consecuencia, ninguno de los procesos puede continuar su ejecución.</p>
+                </div>
+                <div class="conditions-grid">
+                    <div class="condition-card">
+                        <span class="cond-num">01</span>
+                        <h4>Exclusión Mutua</h4>
+                        <p>Un recurso solo puede ser utilizado por un proceso a la vez.</p>
+                    </div>
+                    <div class="condition-card">
+                        <span class="cond-num">02</span>
+                        <h4>Retención y Espera</h4>
+                        <p>Un proceso mantiene recursos mientras solicita otros adicionales.</p>
+                    </div>
+                    <div class="condition-card">
+                        <span class="cond-num">03</span>
+                        <h4>No Apropiación</h4>
+                        <p>Los recursos no pueden retirarse forzosamente de un proceso.</p>
+                    </div>
+                    <div class="condition-card">
+                        <span class="cond-num">04</span>
+                        <h4>Espera Circular</h4>
+                        <p>Los procesos esperan recursos entre sí formando un ciclo cerrado.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: ALGORITMO -->
+    <section class="section-mid" id="algoritmo">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">El Algoritmo</div>
+                <h2>ALGORITMO DEL <span class="accent">BANQUERO</span></h2>
+                <p>Conoce al creador y los fundamentos detrás del algoritmo</p>
+            </div>
+
+            <div class="algo-layout">
+
+                <!-- Dijkstra — tarjeta principal -->
+                <div class="algo-dijkstra glass">
+                    <div class="algo-dijkstra-img">
+                        <img src="img/dijkstra_edgar.jpg" alt="Edsger W. Dijkstra">
+                    </div>
+                    <div class="algo-dijkstra-body">
+                        <div class="dijkstra-tag">¿Quién lo creó?</div>
+                        <h3>Edsger W. Dijkstra</h3>
+                        <p>Científico de la computación neerlandés (1930–2002). Pionero en algoritmos, concurrencia y sistemas operativos. Creó este algoritmo en 1965 como parte de su trabajo en el sistema operativo THE. Ganador del <strong>Premio Turing en 1972</strong>.</p>
+                    </div>
+                </div>
+
+                <!-- 4 cards secundarias -->
+                <div class="algo-secondary algo-secondary-grid">
+                    <div class="algo-card">
+                        <div class="algo-icon"><svg width="28" height="28" fill="none" stroke="#4DDCFF" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 3H5a2 2 0 00-2 2v4m6-6h10a2 2 0 012 2v4M9 3v18m0 0h10a2 2 0 002-2V9M9 21H5a2 2 0 01-2-2V9m0 0h18"/></svg></div>
+                        <h3>¿Qué es?</h3>
+                        <p>Un método para evitar bloqueos durante la asignación de recursos. Antes de asignar, verifica que el sistema permanezca en un <strong>estado seguro</strong>.</p>
+                    </div>
+                    <div class="algo-card">
+                        <div class="algo-icon"><svg width="28" height="28" fill="none" stroke="#4DDCFF" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg></div>
+                        <h3>¿Para qué sirve?</h3>
+                        <p>Prevenir deadlocks <strong>simulando la asignación</strong> antes de conceder recursos. Si el estado resultante es inseguro, el proceso espera.</p>
+                    </div>
+                    <div class="algo-card">
+                        <div class="algo-icon"><svg width="28" height="28" fill="none" stroke="#4DDCFF" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg></div>
+                        <h3>Uso Actual</h3>
+                        <p>Principalmente con <strong>fines educativos y académicos</strong>. En sistemas modernos se usan otros métodos por el costo computacional.</p>
+                    </div>
+                    <div class="algo-card algo-card-warn">
+                        <div class="algo-icon"><svg width="28" height="28" fill="none" stroke="#FFC857" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div>
+                        <h3>Desventaja Principal</h3>
+                        <p>Exige saber de antemano el <strong>máximo de recursos</strong> que pedirá cada proceso, lo cual es casi imposible en sistemas reales.</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: COMPONENTES -->
+    <section class="section-dark" id="componentes">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Estructura</div>
+                <h2>COMPONENTES <span class="accent">PRINCIPALES</span></h2>
+                <p>Las matrices y vectores que forman la base del algoritmo</p>
+            </div>
+
+            <div class="comp-main-layout">
+
+                <!-- 4 componentes 2x2 ARRIBA -->
+                <div class="comp-cards-grid">
+                    <div class="comp-card">
+                        <div class="comp-card-badge cyan">Available</div>
+                        <p>Vector de recursos <strong>disponibles actualmente</strong> en el sistema para ser asignados.</p>
+                    </div>
+                    <div class="comp-card">
+                        <div class="comp-card-badge blue">Max</div>
+                        <p>Cantidad <strong>máxima de recursos</strong> que cada proceso puede llegar a solicitar.</p>
+                    </div>
+                    <div class="comp-card">
+                        <div class="comp-card-badge purple">Allocation</div>
+                        <p>Recursos <strong>asignados actualmente</strong> a cada proceso en ejecución.</p>
+                    </div>
+                    <div class="comp-card">
+                        <div class="comp-card-badge teal">Need</div>
+                        <p>Recursos que <strong>todavía necesita</strong> un proceso para poder finalizar.</p>
+                    </div>
+                </div>
+
+                <!-- Fórmula + matriz ABAJO, lado a lado -->
+                <div class="comp-bottom-row">
+                    <div class="formula-box glass comp-formula-half">
+                        <div class="formula-label">FÓRMULA PRINCIPAL</div>
+                        <div class="formula-eq">
+                            <span class="f-need">Need</span>
+                            <span class="f-op">=</span>
+                            <span class="f-max">Max</span>
+                            <span class="f-op">−</span>
+                            <span class="f-alloc">Allocation</span>
+                        </div>
+                        <p class="formula-desc">Calcula cuántos recursos le faltan a un proceso para finalizar su ejecución.</p>
+                    </div>
+                    <div class="glass comp-matrix-half">
+                        <div class="matrix-example" style="margin-top:0; border-top:none; padding-top:0; padding: 1.8rem;">
+                            <div class="matrix-title">Ejemplo de matrices</div>
+                            <div class="matrix-row header-row">
+                                <span></span><span>A</span><span>B</span><span>C</span>
+                            </div>
+                            <div class="matrix-section-label">Allocation</div>
+                            <div class="matrix-row"><span>P0</span><span>0</span><span>1</span><span>0</span></div>
+                            <div class="matrix-row"><span>P1</span><span>2</span><span>0</span><span>0</span></div>
+                            <div class="matrix-row"><span>P2</span><span>3</span><span>0</span><span>2</span></div>
+                            <div class="matrix-section-label">Max</div>
+                            <div class="matrix-row"><span>P0</span><span>7</span><span>5</span><span>3</span></div>
+                            <div class="matrix-row"><span>P1</span><span>3</span><span>2</span><span>2</span></div>
+                            <div class="matrix-row"><span>P2</span><span>9</span><span>0</span><span>2</span></div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: FUNCIONAMIENTO -->
+    <section class="section-mid" id="funcionamiento">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Paso a Paso</div>
+                <h2>¿CÓMO <span class="accent">FUNCIONA</span>?</h2>
+                <p>El proceso de evaluación que sigue el sistema operativo en cada solicitud</p>
+                <!-- Botón flotante de imagen explicativa -->
+                <div class="howbtn-wrap">
+                    <button class="how-img-btn" id="howImgBtn" aria-label="Ver diagrama explicativo">
+                        <span>?</span>
+                    </button>
+                    <span class="how-img-label">Ver diagrama</span>
+                </div>
+            </div>
+
+            <!-- Overlay de imagen -->
+            <div class="how-img-overlay" id="howImgOverlay">
+                <div class="how-img-modal">
+                    <button class="how-img-close" id="howImgClose">✕</button>
+                    <img src="img/banquerogif.gif" alt="Diagrama de funcionamiento del Algoritmo del Banquero">
+                </div>
+            </div>
+
+            <div class="steps-grid">
+                <div class="step-item">
+                    <div class="step-circle">01</div>
+                    <div class="step-connector"></div>
+                    <div class="step-body">
+                        <h4>Solicitud</h4>
+                        <p>Un proceso solicita recursos al sistema operativo.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-circle">02</div>
+                    <div class="step-connector"></div>
+                    <div class="step-body">
+                        <h4>Disponibilidad</h4>
+                        <p>El sistema verifica si hay suficientes recursos disponibles.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-circle">03</div>
+                    <div class="step-connector"></div>
+                    <div class="step-body">
+                        <h4>Simulación</h4>
+                        <p>La asignación se simula de forma temporal antes de confirmarla.</p>
+                    </div>
+                </div>
+                <div class="step-item">
+                    <div class="step-circle">04</div>
+                    <div class="step-connector last"></div>
+                    <div class="step-body">
+                        <h4>Análisis de estado</h4>
+                        <p>¿El sistema queda en estado seguro?</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fork seguro / inseguro -->
+            <div class="step-fork">
+                <div class="fork-branch safe-branch">
+                    <div class="fork-icon">✓</div>
+                    <h4>Estado Seguro</h4>
+                    <p>Los recursos son <strong>asignados</strong> al proceso.</p>
+                </div>
+                <div class="fork-divider"></div>
+                <div class="fork-branch unsafe-branch">
+                    <div class="fork-icon">✗</div>
+                    <h4>Estado Inseguro</h4>
+                    <p>El proceso debe <strong>esperar</strong>.</p>
+                </div>
+            </div>
+
+            <!-- Estados Seguros -->
+            <div class="safe-state-box glass">
+                <div class="safe-state-left">
+                    <h3>Estados Seguros</h3>
+                    <p>Un <strong>estado seguro</strong> garantiza que todos los procesos pueden finalizar correctamente. Una <em>secuencia segura</em> es un orden de ejecución donde todos los procesos terminan sin generar bloqueos.</p>
+                </div>
+                <div class="safe-state-right">
+                    <div class="seq-label">Ejemplo de secuencia segura:</div>
+                    <div class="seq-flow">
+                        <div class="seq-node">P1</div>
+                        <span>→</span>
+                        <div class="seq-node">P3</div>
+                        <span>→</span>
+                        <div class="seq-node">P2</div>
+                        <span>→</span>
+                        <div class="seq-node">P4</div>
+                    </div>
+                    <p class="seq-note">Todos los procesos pueden completarse en este orden sin bloqueos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: PROS Y CONTRAS -->
+    <section class="section-dark" id="pros-cons">
+        <div class="container">
+            <div class="section-header">
+                <div class="section-tag">Evaluación</div>
+                <h2>VENTAJAS Y <span class="accent">DESVENTAJAS</span></h2>
+                <p>Análisis completo del algoritmo del banquero</p>
+            </div>
+
+            <div class="pros-cons-grid">
+                <div class="pros-box glass">
+                    <div class="pc-header green">
+                        <span><svg width="22" height="22" fill="none" stroke="#3DDC84" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                        <h3>Ventajas</h3>
+                    </div>
+                    <ul class="pc-list">
+                        <li><span class="dot green"></span>Previene deadlocks de forma efectiva</li>
+                        <li><span class="dot green"></span>Mejora la administración de recursos del sistema</li>
+                        <li><span class="dot green"></span>Mantiene estabilidad en el sistema operativo</li>
+                        <li><span class="dot green"></span>Permite analizar estados seguros e inseguros</li>
+                    </ul>
+                </div>
+                <div class="cons-box glass">
+                    <div class="pc-header red">
+                        <span><svg width="22" height="22" fill="none" stroke="#FF5F6D" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                        <h3>Desventajas</h3>
+                    </div>
+                    <ul class="pc-list">
+                        <li><span class="dot red"></span>Requiere conocer previamente la demanda máxima de cada proceso</li>
+                        <li><span class="dot red"></span>Aumenta el consumo de procesamiento del sistema</li>
+                        <li><span class="dot red"></span>Puede volverse complejo en sistemas grandes</li>
+                        <li><span class="dot red"></span>No siempre es práctico en entornos modernos</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: CONCLUSIÓN -->
+    <section class="conclusion-section">
+        <div class="container">
+            <div class="conclusion-layout">
+                <div class="conclusion-box glass">
+                    <div class="conclusion-icon"><svg width="48" height="48" fill="none" stroke="#4DDCFF" stroke-width="1.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l9-5-9-5-9 5 9 5z"/><path stroke-linecap="round" stroke-linejoin="round" d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"/></svg></div>
+                    <h2>Conclusión</h2>
+                    <p>El <strong>Algoritmo del Banquero</strong> es una estrategia clásica para prevenir bloqueos mediante una asignación segura de recursos. Aunque actualmente se utiliza principalmente con fines académicos, sigue siendo <strong>fundamental para comprender la administración de recursos</strong> en sistemas operativos.</p>
+                    <div class="conclusion-tags">
+                        <span>#SistemasOperativos</span>
+                        <span>#Dijkstra</span>
+                        <span>#Deadlock</span>
+                        <span>#GestiónRecursos</span>
+                    </div>
+                </div>
+                <div class="conclusion-img-box glass">
+                    <!-- Coloca aquí tu imagen: src="img/TU_IMAGEN.png" -->
+                    <img src="img/banquero.jpg" alt="Imagen conclusión">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN: SIMULADOR -->
+    <section class="simulator-section">
+        <div class="container">
+            <div class="simulator-layout">
+                <div class="simulator-text">
+                    <div class="section-tag">Interactivo</div>
+                    <h2>PRUEBA EL <span class="accent">SIMULADOR</span></h2>
+                    <p>Experimenta el algoritmo en tiempo real desarrollado por Atros.tec en un interactivo sistema operativo web.</p>
+                    <a href="ATROS.html" class="btn-simulator" target="_blank">
+                        
+                        <span>Abrir Simulador</span>
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                    </a>
+                </div>
+                <div class="simulator-preview glass">
+                    <div class="sim-img-container">
+                        <!-- Coloca aquí tu imagen: src="img/TU_IMAGEN.png" -->
+                        <img src="img/atros aero.png" alt="Vista previa del simulador">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="footer">
+        <div class="footer-top">
+            <div class="footer-triangle"></div>
+            <div class="footer-bg-text">BA.</div>
+            <div class="container footer-content">
+                <div class="footer-logo-text"><svg width="20" height="20" fill="none" stroke="#4DDCFF" stroke-width="2" viewBox="0 0 24 24" style="vertical-align:middle;margin-right:.4rem"><path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg> BankerAlgo</div>
+                <p class="footer-desc">Portal educativo sobre el Algoritmo del Banquero y prevención de Deadlocks</p>
+                <p class="footer-copy">ATROS.TEC © 2026</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <div class="container">
+                <span>Algoritmo del Banquero</span>
+                <span>·</span>
+                <span>Sistemas Operativos</span>
+                <span>·</span>
+                <span>Edsger W. Dijkstra</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
