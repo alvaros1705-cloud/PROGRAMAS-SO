@@ -1,0 +1,950 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Courier New', monospace; }
+
+  #app {
+    background: #0a0e1a;
+    color: #c8d8f0;
+    padding: 16px;
+    min-height: 600px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scanline {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,255,180,0.015) 2px,
+      rgba(0,255,180,0.015) 4px
+    );
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 14px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header h2 {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    color: #00ffb4;
+    text-transform: uppercase;
+    text-shadow: 0 0 8px rgba(0,255,180,0.4);
+  }
+
+  .header p {
+    font-size: 10px;
+    color: #4a6a8a;
+    margin-top: 3px;
+    letter-spacing: 1px;
+  }
+
+  .controls {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 1;
+  }
+
+  .btn-periph {
+    background: #0d1825;
+    border: 1px solid #1a3a5c;
+    color: #7ab8f5;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    position: relative;
+  }
+
+  .btn-periph:hover {
+    border-color: #00ffb4;
+    color: #00ffb4;
+    box-shadow: 0 0 8px rgba(0,255,180,0.2);
+  }
+
+  .btn-periph.active {
+    background: #001a10;
+    border-color: #00ffb4;
+    color: #00ffb4;
+    box-shadow: 0 0 10px rgba(0,255,180,0.3);
+  }
+
+  .btn-periph .icon { font-size: 14px; display: block; margin-bottom: 2px; }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .left-col { display: flex; flex-direction: column; gap: 10px; }
+  .right-col { display: flex; flex-direction: column; gap: 10px; }
+
+  .layer-card {
+    background: #0d1825;
+    border: 1px solid #1a3a5c;
+    border-radius: 8px;
+    padding: 10px;
+    position: relative;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+
+  .layer-card.active-layer {
+    border-color: #00ffb4;
+    box-shadow: 0 0 12px rgba(0,255,180,0.15);
+  }
+
+  .layer-label {
+    font-size: 9px;
+    letter-spacing: 2px;
+    color: #4a6a8a;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+
+  .layer-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: #c8d8f0;
+    margin-bottom: 4px;
+  }
+
+  .layer-desc {
+    font-size: 10px;
+    color: #5a7a9a;
+    line-height: 1.5;
+  }
+
+  .status-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1a3a5c;
+    display: inline-block;
+    margin-right: 4px;
+    transition: background 0.3s, box-shadow 0.3s;
+  }
+
+  .status-dot.on {
+    background: #00ffb4;
+    box-shadow: 0 0 6px rgba(0,255,180,0.6);
+    animation: blink 1s ease-in-out infinite;
+  }
+
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
+
+  .packet-rail {
+    height: 24px;
+    background: #060c16;
+    border: 1px solid #1a3a5c;
+    border-radius: 4px;
+    margin-top: 6px;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .packet {
+    position: absolute;
+    top: 4px;
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    font-size: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    opacity: 0;
+  }
+
+  .packet.moving {
+    animation: slide 1.2s ease-in-out forwards;
+  }
+
+  @keyframes slide {
+    0%   { left: 0%;   opacity: 0; }
+    10%  { opacity: 1; }
+    90%  { opacity: 1; }
+    100% { left: 90%; opacity: 0; }
+  }
+
+  .log-panel {
+    background: #060c16;
+    border: 1px solid #1a3a5c;
+    border-radius: 8px;
+    padding: 10px;
+    height: 120px;
+    overflow-y: auto;
+    position: relative;
+    z-index: 1;
+    margin-top: 10px;
+  }
+
+  .log-panel::-webkit-scrollbar { width: 4px; }
+  .log-panel::-webkit-scrollbar-track { background: #0a0e1a; }
+  .log-panel::-webkit-scrollbar-thumb { background: #1a3a5c; border-radius: 2px; }
+
+  .log-entry {
+    font-size: 10px;
+    line-height: 1.8;
+    border-bottom: 1px solid #0d1825;
+    padding: 1px 0;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+  .log-ts { color: #2a5a3a; margin-right: 6px; }
+  .log-layer { margin-right: 6px; font-weight: 700; }
+  .log-msg { color: #7a9ab8; }
+
+  .c-periph  { color: #f5a623; }
+  .c-irq     { color: #e84393; }
+  .c-driver  { color: #7ab8f5; }
+  .c-os      { color: #b48af5; }
+  .c-fs      { color: #00ffb4; }
+  .c-disk    { color: #f5f523; }
+
+  .disk-visual {
+    position: relative;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto;
+  }
+
+  .disk-platter {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    border: 3px solid #1a3a5c;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    overflow: hidden;
+    background: radial-gradient(circle at 40% 35%, #1a2a3a, #060c16);
+  }
+
+  .disk-sector {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    clip-path: inset(0);
+  }
+
+  .disk-arm {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 34px;
+    height: 3px;
+    background: linear-gradient(90deg, #3a5a8a, #00ffb4);
+    transform-origin: 0% 50%;
+    border-radius: 2px;
+    transform: rotate(-30deg);
+    transition: transform 0.8s ease;
+    box-shadow: 0 0 6px rgba(0,255,180,0.4);
+  }
+
+  .disk-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #00ffb4;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px rgba(0,255,180,0.6);
+  }
+
+  .sector-highlight {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    pointer-events: none;
+  }
+
+  .spinning {
+    animation: spin 2s linear infinite;
+  }
+
+  @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+  .disk-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-top: 8px;
+  }
+
+  .stat-item {
+    background: #060c16;
+    border-radius: 4px;
+    padding: 4px 6px;
+    font-size: 9px;
+  }
+
+  .stat-label { color: #4a6a8a; }
+  .stat-val { color: #00ffb4; font-weight: 700; }
+
+  .irq-badge {
+    display: inline-block;
+    background: #1a0820;
+    border: 1px solid #e84393;
+    color: #e84393;
+    font-size: 9px;
+    padding: 1px 5px;
+    border-radius: 3px;
+    margin-left: 4px;
+    font-weight: 700;
+  }
+
+  .dma-bar {
+    height: 4px;
+    background: #060c16;
+    border-radius: 2px;
+    margin-top: 6px;
+    overflow: hidden;
+  }
+
+  .dma-fill {
+    height: 100%;
+    width: 0%;
+    background: linear-gradient(90deg, #7ab8f5, #00ffb4);
+    border-radius: 2px;
+    transition: width 0.1s;
+  }
+
+  .info-toggle {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: none;
+    border: 1px solid #2a4a6a;
+    color: #4a6a8a;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: 'Courier New', monospace;
+    transition: all 0.2s;
+  }
+
+  .info-toggle:hover { border-color: #7ab8f5; color: #7ab8f5; }
+
+  .info-popup {
+    position: absolute;
+    right: 8px;
+    top: 30px;
+    background: #0d1825;
+    border: 1px solid #7ab8f5;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 9px;
+    line-height: 1.6;
+    color: #7a9ab8;
+    max-width: 160px;
+    z-index: 10;
+    display: none;
+  }
+
+  .info-popup.show { display: block; }
+
+  .phase-indicator {
+    display: flex;
+    gap: 4px;
+    justify-content: center;
+    margin-bottom: 10px;
+    position: relative;
+    z-index: 1;
+    flex-wrap: wrap;
+  }
+
+  .phase-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #1a3a5c;
+    transition: all 0.3s;
+  }
+
+  .phase-dot.done { background: #00ffb4; }
+  .phase-dot.current { background: #f5a623; box-shadow: 0 0 6px rgba(245,166,35,0.6); animation: blink 0.6s infinite; }
+
+  .reset-btn {
+    background: none;
+    border: 1px solid #3a5a8a;
+    color: #5a8ab8;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    padding: 5px 14px;
+    border-radius: 5px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    transition: all 0.2s;
+    margin-left: 8px;
+  }
+
+  .reset-btn:hover { border-color: #00ffb4; color: #00ffb4; }
+</style>
+
+<h2 class="sr-only">Simulación interactiva: flujo de E/S desde periférico hasta disco</h2>
+
+<div id="app">
+  <div class="scanline"></div>
+
+  <div class="header">
+    <h2>⌬ SIM:IO — Flujo de E/S</h2>
+    <p>Arquitectura de Hardware &amp; Software · Principios de E/S y Disco</p>
+  </div>
+
+  <div class="controls">
+    <button class="btn-periph" id="btn-kb" onclick="startSim('keyboard')">
+      <span class="icon">⌨</span>TECLADO
+    </button>
+    <button class="btn-periph" id="btn-mouse" onclick="startSim('mouse')">
+      <span class="icon">⊙</span>RATÓN
+    </button>
+    <button class="btn-periph" id="btn-net" onclick="startSim('network')">
+      <span class="icon">⊛</span>RED
+    </button>
+    <button class="btn-periph" id="btn-usb" onclick="startSim('usb')">
+      <span class="icon">⊠</span>USB
+    </button>
+    <button class="reset-btn" onclick="resetSim()">↺ RESET</button>
+  </div>
+
+  <div class="phase-indicator" id="phases">
+    <div class="phase-dot" title="Periférico"></div>
+    <div class="phase-dot" title="IRQ"></div>
+    <div class="phase-dot" title="Driver"></div>
+    <div class="phase-dot" title="Kernel"></div>
+    <div class="phase-dot" title="VFS"></div>
+    <div class="phase-dot" title="Driver Disco"></div>
+    <div class="phase-dot" title="Controlador"></div>
+    <div class="phase-dot" title="Plato"></div>
+  </div>
+
+  <div class="main-grid">
+    <div class="left-col">
+
+      <!-- PERIFÉRICO -->
+      <div class="layer-card" id="card-periph">
+        <div class="layer-label"><span class="status-dot" id="dot-periph"></span>Capa 1 · Hardware</div>
+        <div class="layer-title" id="periph-title">Periférico</div>
+        <div class="layer-desc" id="periph-desc">Selecciona un periférico para iniciar la simulación.</div>
+        <div class="packet-rail" id="rail-periph">
+          <div class="packet" id="pkt-periph" style="background:#f5a62330; border:1px solid #f5a623; color:#f5a623;">D</div>
+        </div>
+      </div>
+
+      <!-- IRQ / CONTROLADOR -->
+      <div class="layer-card" id="card-irq">
+        <button class="info-toggle" onclick="toggleInfo('irq-info')">?</button>
+        <div class="info-popup" id="irq-info">
+          <strong style="color:#e84393">IRQ</strong> (Interrupt ReQuest): señal eléctrica que el hardware envía a la CPU para indicar que necesita atención. La CPU detiene brevemente su tarea, guarda su estado, y ejecuta la ISR.
+        </div>
+        <div class="layer-label"><span class="status-dot" id="dot-irq"></span>Capa 2 · Interrupciones</div>
+        <div class="layer-title">Controlador + IRQ</div>
+        <div class="layer-desc" id="irq-desc">Esperando señal de interrupción...</div>
+        <div id="irq-badge-area"></div>
+        <div class="packet-rail" id="rail-irq">
+          <div class="packet" id="pkt-irq" style="background:#e8439330; border:1px solid #e84393; color:#e84393;">I</div>
+        </div>
+      </div>
+
+      <!-- DRIVER -->
+      <div class="layer-card" id="card-driver">
+        <button class="info-toggle" onclick="toggleInfo('driver-info')">?</button>
+        <div class="info-popup" id="driver-info">
+          El <strong style="color:#7ab8f5">driver</strong> (controlador de dispositivo) es software que traduce peticiones genéricas del SO en comandos específicos del hardware. Opera en espacio de kernel para acceder directamente al hardware.
+        </div>
+        <div class="layer-label"><span class="status-dot" id="dot-driver"></span>Capa 3 · Software de Sistema</div>
+        <div class="layer-title">Driver del Dispositivo</div>
+        <div class="layer-desc" id="driver-desc">Sin actividad.</div>
+        <div class="dma-bar"><div class="dma-fill" id="dma-fill"></div></div>
+        <div style="font-size:9px; color:#2a5a8a; margin-top:2px;">DMA Transfer</div>
+        <div class="packet-rail" id="rail-driver">
+          <div class="packet" id="pkt-driver" style="background:#7ab8f530; border:1px solid #7ab8f5; color:#7ab8f5;">P</div>
+        </div>
+      </div>
+
+      <!-- KERNEL / SO -->
+      <div class="layer-card" id="card-os">
+        <button class="info-toggle" onclick="toggleInfo('os-info')">?</button>
+        <div class="info-popup" id="os-info">
+          El <strong style="color:#b48af5">Kernel</strong> gestiona recursos mediante llamadas al sistema (syscalls). El scheduler decide qué proceso ejecuta cuándo. El buffer cache reduce escrituras a disco.
+        </div>
+        <div class="layer-label"><span class="status-dot" id="dot-os"></span>Capa 4 · Kernel del SO</div>
+        <div class="layer-title">Sistema Operativo · Kernel</div>
+        <div class="layer-desc" id="os-desc">En espera de llamadas al sistema.</div>
+        <div style="margin-top:6px; font-size:10px; color:#4a5a8a;" id="syscall-area"></div>
+        <div class="packet-rail" id="rail-os">
+          <div class="packet" id="pkt-os" style="background:#b48af530; border:1px solid #b48af5; color:#b48af5;">S</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="right-col">
+
+      <!-- VFS -->
+      <div class="layer-card" id="card-fs">
+        <button class="info-toggle" onclick="toggleInfo('fs-info')">?</button>
+        <div class="info-popup" id="fs-info">
+          <strong style="color:#00ffb4">VFS</strong> (Virtual File System): capa de abstracción que unifica distintos sistemas de archivos (ext4, NTFS, FAT32) bajo una interfaz común. Gestiona inodos, bloques, y el árbol de directorios.
+        </div>
+        <div class="layer-label"><span class="status-dot" id="dot-fs"></span>Capa 5 · VFS &amp; Filesystem</div>
+        <div class="layer-title">VFS · Sistema de Archivos</div>
+        <div class="layer-desc" id="fs-desc">VFS inactivo.</div>
+        <div id="inode-area" style="margin-top:6px; font-size:9px; color:#2a6a4a;"></div>
+        <div class="packet-rail" id="rail-fs">
+          <div class="packet" id="pkt-fs" style="background:#00ffb430; border:1px solid #00ffb4; color:#00ffb4;">B</div>
+        </div>
+      </div>
+
+      <!-- DISK DRIVER -->
+      <div class="layer-card" id="card-diskdrv">
+        <div class="layer-label"><span class="status-dot" id="dot-diskdrv"></span>Capa 6 · Driver de Disco</div>
+        <div class="layer-title">Driver de Disco · ATA/NVMe</div>
+        <div class="layer-desc" id="diskdrv-desc">Interfaz de disco en reposo.</div>
+        <div class="packet-rail" id="rail-diskdrv">
+          <div class="packet" id="pkt-diskdrv" style="background:#f5f52330; border:1px solid #f5f523; color:#f5f523;">W</div>
+        </div>
+      </div>
+
+      <!-- CONTROLADOR DISCO -->
+      <div class="layer-card" id="card-ctrl">
+        <button class="info-toggle" onclick="toggleInfo('ctrl-info')">?</button>
+        <div class="info-popup" id="ctrl-info">
+          El controlador de disco tiene su propia CPU, caché y firmware. Gestiona la cola de peticiones I/O, aplica algoritmos de planificación (SSTF, C-SCAN) y traduce LBA (bloques lógicos) a CHS (cilindro-cabeza-sector).
+        </div>
+        <div class="layer-label"><span class="status-dot" id="dot-ctrl"></span>Capa 7 · Controlador Físico</div>
+        <div class="layer-title">Controlador de Disco</div>
+        <div class="layer-desc" id="ctrl-desc">Cola de E/S vacía.</div>
+        <div id="queue-area" style="margin-top:5px;"></div>
+      </div>
+
+      <!-- DISCO FÍSICO -->
+      <div class="layer-card" id="card-disk">
+        <div class="layer-label"><span class="status-dot" id="dot-disk"></span>Capa 8 · Almacenamiento Físico</div>
+        <div class="layer-title">Disco · Plato Magnético / SSD</div>
+        <div class="disk-visual">
+          <div class="disk-platter" id="disk-platter">
+            <svg width="64" height="64" viewBox="0 0 64 64" style="position:absolute">
+              <circle cx="32" cy="32" r="28" fill="none" stroke="#1a3a5c" stroke-width="0.5"/>
+              <circle cx="32" cy="32" r="22" fill="none" stroke="#1a2a4a" stroke-width="0.5"/>
+              <circle cx="32" cy="32" r="16" fill="none" stroke="#1a2a4a" stroke-width="0.5"/>
+              <circle cx="32" cy="32" r="10" fill="none" stroke="#1a2a4a" stroke-width="0.5"/>
+              <circle cx="32" cy="32" r="4" fill="none" stroke="#1a2a4a" stroke-width="0.5"/>
+              <line x1="32" y1="4" x2="32" y2="60" stroke="#1a2a4a" stroke-width="0.3" opacity="0.5"/>
+              <line x1="4" y1="32" x2="60" y2="32" stroke="#1a2a4a" stroke-width="0.3" opacity="0.5"/>
+              <line x1="12" y1="12" x2="52" y2="52" stroke="#1a2a4a" stroke-width="0.3" opacity="0.5"/>
+              <line x1="52" y1="12" x2="12" y2="52" stroke="#1a2a4a" stroke-width="0.3" opacity="0.5"/>
+            </svg>
+            <svg id="sector-svg" width="64" height="64" viewBox="0 0 64 64" style="position:absolute"></svg>
+          </div>
+          <div class="disk-arm" id="disk-arm"></div>
+          <div class="disk-center"></div>
+        </div>
+        <div class="disk-stats">
+          <div class="stat-item"><div class="stat-label">SECTOR</div><div class="stat-val" id="stat-sector">--</div></div>
+          <div class="stat-item"><div class="stat-label">LBA</div><div class="stat-val" id="stat-lba">--</div></div>
+          <div class="stat-item"><div class="stat-label">RPM</div><div class="stat-val" id="stat-rpm">0</div></div>
+          <div class="stat-item"><div class="stat-label">BYTES</div><div class="stat-val" id="stat-bytes">0</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-panel" id="log-panel">
+    <div class="log-entry">
+      <span class="log-ts">[00:00:00]</span>
+      <span class="log-layer c-fs">SIM</span>
+      <span class="log-msg">Sistema inicializado. Selecciona un periférico para comenzar.</span>
+    </div>
+  </div>
+</div>
+
+<script>
+const DEVICES = {
+  keyboard: {
+    name: 'Teclado PS/2 / USB HID',
+    irq: 'IRQ 1',
+    driver: 'hid-generic.ko / atkbd.ko',
+    syscall: 'write() → /dev/input/event0',
+    fsPath: '/home/usuario/documento.txt',
+    inode: 'inode #48291',
+    lba: Math.floor(Math.random()*500000 + 100000),
+    bytes: 4096,
+    steps: [
+      'Tecla presionada → señal eléctrica en puerto PS/2',
+      'Controlador genera escancode: 0x1E (tecla A)',
+      'Señal IRQ enviada por línea de interrupción',
+      'CPU detiene ejecución, guarda contexto en pila',
+      'PIC enruta IRQ → ISR del teclado en kernel',
+      'Driver decodifica escancode → carácter ASCII 0x41',
+      'Driver escribe en buffer circular del kernel',
+      'VFS recibe write() → traduce a operación de bloque',
+      'Asigna inode, calcula bloques lógicos (LBA)',
+      'Driver de disco enruta petición al controlador',
+      'Controlador posiciona cabeza sobre pista',
+      'Datos escritos en sector físico del plato'
+    ]
+  },
+  mouse: {
+    name: 'Ratón USB HID',
+    irq: 'IRQ 4',
+    driver: 'usbhid.ko / evdev.ko',
+    syscall: 'read() → /dev/input/mice',
+    fsPath: '/tmp/cursor.lock',
+    inode: 'inode #1024',
+    lba: Math.floor(Math.random()*500000 + 100000),
+    bytes: 512,
+    steps: [
+      'Sensor óptico detecta movimiento (delta X, Y)',
+      'Microcontrolador USB empaqueta datos HID',
+      'USB polling a 125Hz → datos al hub USB',
+      'Controlador USB genera interrupción al recibir paquete',
+      'CPU entra en modo kernel, despacha interrupción',
+      'Driver usbhid.ko parsea paquete HID: btn, relX, relY',
+      'Eventos se emiten a /dev/input/event1 vía evdev',
+      'VFS procesa operación de escritura en tmpfs',
+      'tmpfs no requiere acceso a disco (en memoria)',
+      'Driver de disco en modo idle — sin operación',
+      'Controlador mantiene posición actual',
+      'Solo metadata actualizada en disco eventualmente'
+    ]
+  },
+  network: {
+    name: 'NIC Ethernet / WiFi',
+    irq: 'IRQ 16 (MSI-X)',
+    driver: 'e1000e.ko / r8169.ko',
+    syscall: 'recv() → socket buffer',
+    fsPath: '/var/log/network.log',
+    inode: 'inode #98204',
+    lba: Math.floor(Math.random()*500000 + 100000),
+    bytes: 65536,
+    steps: [
+      'Paquete Ethernet llega al controlador NIC',
+      'NIC verifica checksum CRC de trama',
+      'DMA copia datos del buffer NIC a RAM directamente',
+      'NIC genera MSI-X interrupt (NAPI polling activado)',
+      'softIRQ NET_RX_SOFTIRQ procesa la cola',
+      'Driver e1000e.ko pasa frame al stack de red',
+      'TCP/IP stack: des-encapsula, verifica ACK, reensambla',
+      'Datos llegan a socket buffer del proceso',
+      'syscall write() → VFS escribe en /var/log',
+      'VFS calcula bloques, gestiona journal ext4',
+      'Driver de disco recibe petición de escritura',
+      'Controlador escribe en plato: LBA → CHS → sector'
+    ]
+  },
+  usb: {
+    name: 'Almacenamiento USB Mass Storage',
+    irq: 'IRQ 23 (EHCI)',
+    driver: 'usb-storage.ko / uas.ko',
+    syscall: 'write() → blk_mq submit',
+    fsPath: '/media/usb/datos.bin',
+    inode: 'inode #3',
+    lba: Math.floor(Math.random()*500000 + 100000),
+    bytes: 131072,
+    steps: [
+      'Dispositivo USB conectado → hub detecta ATTACH',
+      'Controlador EHCI inicia enumeración USB',
+      'SO solicita descriptores → asigna dirección USB',
+      'Driver usb-storage crea dispositivo de bloque scsi',
+      'Proceso solicita write() → SCSI WRITE(10) command',
+      'Driver convierte syscall a petición de bloque I/O',
+      'blk_mq gestiona cola multi-cola de peticiones',
+      'Petición pasa por elevator I/O scheduler (mq-deadline)',
+      'SCSI layer añade comando al transport layer USB',
+      'Driver construye URB (USB Request Block)',
+      'EHCI controller transfiere datos por bus USB 2.0',
+      'Flash NAND en USB escribe: bloque físico asignado'
+    ]
+  }
+};
+
+let simState = null;
+let stepIndex = 0;
+let totalBytes = 0;
+let simTimeout = null;
+let isDiskSpinning = false;
+
+const layerMap = [
+  { card:'card-periph',  dot:'dot-periph',  desc:'periph-desc', rail:'rail-periph', pkt:'pkt-periph' },
+  { card:'card-irq',     dot:'dot-irq',     desc:'irq-desc',    rail:'rail-irq',    pkt:'pkt-irq'    },
+  { card:'card-driver',  dot:'dot-driver',  desc:'driver-desc', rail:'rail-driver', pkt:'pkt-driver' },
+  { card:'card-os',      dot:'dot-os',      desc:'os-desc',     rail:'rail-os',     pkt:'pkt-os'     },
+  { card:'card-fs',      dot:'dot-fs',      desc:'fs-desc',     rail:'rail-fs',     pkt:'pkt-fs'     },
+  { card:'card-diskdrv', dot:'dot-diskdrv', desc:'diskdrv-desc',rail:'rail-diskdrv',pkt:'pkt-diskdrv'},
+  { card:'card-ctrl',    dot:'dot-ctrl',    desc:'ctrl-desc' },
+  { card:'card-disk',    dot:'dot-disk' }
+];
+
+const layerColors = ['#f5a623','#e84393','#7ab8f5','#b48af5','#00ffb4','#f5f523','#f5a623','#00ffb4'];
+const layerClasses = ['c-periph','c-irq','c-driver','c-os','c-fs','c-disk','c-periph','c-fs'];
+const layerNames = ['PERIPH','IRQ','DRIVER','KERNEL','VFS','DISKDRV','CTRL','DISK'];
+
+function log(layer, msg, color) {
+  const panel = document.getElementById('log-panel');
+  const now = new Date();
+  const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+  const entry = document.createElement('div');
+  entry.className = 'log-entry';
+  entry.innerHTML = `<span class="log-ts">[${ts}]</span><span class="log-layer ${color}">${layer}</span><span class="log-msg">${msg}</span>`;
+  panel.appendChild(entry);
+  panel.scrollTop = panel.scrollHeight;
+}
+
+function setPhase(idx) {
+  const dots = document.getElementById('phases').querySelectorAll('.phase-dot');
+  dots.forEach((d, i) => {
+    d.classList.remove('done','current');
+    if (i < idx) d.classList.add('done');
+    else if (i === idx) d.classList.add('current');
+  });
+}
+
+function activateLayer(idx, descText) {
+  layerMap.forEach((l, i) => {
+    const card = document.getElementById(l.card);
+    const dot  = document.getElementById(l.dot);
+    card.classList.remove('active-layer');
+    dot.classList.remove('on');
+    if (i === idx) {
+      card.classList.add('active-layer');
+      dot.classList.add('on');
+      if (l.desc && descText) document.getElementById(l.desc).textContent = descText;
+    }
+  });
+  setPhase(idx);
+}
+
+function firePacket(railId, pktId) {
+  const pkt = document.getElementById(pktId);
+  if (!pkt) return;
+  pkt.classList.remove('moving');
+  void pkt.offsetWidth;
+  pkt.classList.add('moving');
+  pkt.addEventListener('animationend', () => pkt.classList.remove('moving'), { once: true });
+}
+
+function animateDMA(duration) {
+  const bar = document.getElementById('dma-fill');
+  let w = 0;
+  const step = 100 / (duration / 50);
+  const interval = setInterval(() => {
+    w = Math.min(100, w + step);
+    bar.style.width = w + '%';
+    if (w >= 100) {
+      clearInterval(interval);
+      setTimeout(() => { bar.style.width = '0%'; }, 300);
+    }
+  }, 50);
+}
+
+function spinDisk(on) {
+  const platter = document.getElementById('disk-platter');
+  if (on) {
+    platter.style.animation = 'spin 1.5s linear infinite';
+    document.getElementById('stat-rpm').textContent = '7200';
+    isDiskSpinning = true;
+  } else {
+    platter.style.animation = '';
+    document.getElementById('stat-rpm').textContent = '0';
+    isDiskSpinning = false;
+  }
+}
+
+function moveArm(angle) {
+  document.getElementById('disk-arm').style.transform = `rotate(${angle}deg)`;
+}
+
+function highlightSector(sector) {
+  const svg = document.getElementById('sector-svg');
+  svg.innerHTML = '';
+  const angle = (sector / 8) * 360;
+  const rad = (angle - 90) * Math.PI / 180;
+  const rad2 = ((angle + 45) - 90) * Math.PI / 180;
+  const cx = 32, cy = 32, r = 28;
+  const x1 = cx + r * Math.cos(rad);
+  const y1 = cy + r * Math.sin(rad);
+  const x2 = cx + r * Math.cos(rad2);
+  const y2 = cy + r * Math.sin(rad2);
+  const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+  path.setAttribute('d', `M${cx},${cy} L${x1},${y1} A${r},${r} 0 0,1 ${x2},${y2} Z`);
+  path.setAttribute('fill', 'rgba(0,255,180,0.35)');
+  path.setAttribute('stroke', '#00ffb4');
+  path.setAttribute('stroke-width', '1');
+  svg.appendChild(path);
+  document.getElementById('stat-sector').textContent = `S${sector}`;
+}
+
+function updateStats(dev) {
+  const lba = dev.lba + Math.floor(Math.random()*100);
+  document.getElementById('stat-lba').textContent = lba.toLocaleString();
+  totalBytes += dev.bytes;
+  document.getElementById('stat-bytes').textContent = (totalBytes / 1024).toFixed(1) + 'K';
+}
+
+function addSyscallBadge(text) {
+  const area = document.getElementById('syscall-area');
+  area.innerHTML = `<span style="color:#b48af5; background:#1a0a30; border:1px solid #b48af5; border-radius:3px; padding:1px 5px; font-size:9px;">${text}</span>`;
+}
+
+function addIRQBadge(irq) {
+  const area = document.getElementById('irq-badge-area');
+  area.innerHTML = `<span class="irq-badge">${irq}</span>`;
+}
+
+function addInodeInfo(text) {
+  document.getElementById('inode-area').textContent = `▸ ${text}`;
+}
+
+function addQueue(text) {
+  const area = document.getElementById('queue-area');
+  const entry = document.createElement('div');
+  entry.style.cssText = 'font-size:9px;color:#2a6a4a;border-left:2px solid #00ffb440;padding-left:4px;margin-top:2px;';
+  entry.textContent = '▸ ' + text;
+  area.appendChild(entry);
+  if (area.children.length > 3) area.removeChild(area.children[0]);
+}
+
+function runStep() {
+  if (!simState || stepIndex >= simState.steps.length) {
+    if (simState) {
+      log('DONE','Flujo completo: dato persistido en disco.','c-fs');
+      spinDisk(false);
+    }
+    return;
+  }
+
+  const step = simState.steps[stepIndex];
+  const layerIdx = Math.min(stepIndex < 2 ? 0 : stepIndex < 4 ? stepIndex - 1 : stepIndex - 1, 7);
+  const li = Math.min(stepIndex, 7);
+
+  activateLayer(li, step);
+  log(layerNames[li], step, layerClasses[li]);
+
+  if (li < 6 && layerMap[li].rail) {
+    firePacket(layerMap[li].rail, layerMap[li].pkt);
+  }
+
+  if (stepIndex === 0) {
+    document.getElementById('periph-title').textContent = simState.name;
+  }
+  if (stepIndex === 1) {
+    addIRQBadge(simState.irq);
+  }
+  if (stepIndex === 2) {
+    animateDMA(1000);
+    document.getElementById('driver-desc').textContent = simState.driver;
+  }
+  if (stepIndex === 3) {
+    addSyscallBadge(simState.syscall);
+  }
+  if (stepIndex === 4) {
+    addInodeInfo(simState.inode + ' → ' + simState.fsPath);
+  }
+  if (stepIndex === 5) {
+    spinDisk(true);
+    addQueue('LBA: ' + simState.lba + ' → sector físico');
+  }
+  if (stepIndex === 6) {
+    moveArm(-30 + Math.random() * 60);
+    addQueue('Scheduling: SSTF → menor seek time');
+  }
+  if (stepIndex === 7) {
+    highlightSector(Math.floor(Math.random() * 8));
+    updateStats(simState);
+    moveArm(-10 + Math.random() * 20);
+  }
+
+  stepIndex++;
+  const delay = stepIndex <= 2 ? 900 : stepIndex <= 5 ? 1100 : 1300;
+  simTimeout = setTimeout(runStep, delay);
+}
+
+function startSim(type) {
+  resetSim();
+  simState = DEVICES[type];
+
+  document.querySelectorAll('.btn-periph').forEach(b => b.classList.remove('active'));
+  const idMap = { keyboard:'kb', mouse:'mouse', network:'net', usb:'usb' };
+  document.getElementById('btn-' + idMap[type]).classList.add('active');
+
+  log('SIM', `Iniciando simulación: ${simState.name}`, 'c-periph');
+  stepIndex = 0;
+  runStep();
+}
+
+function resetSim() {
+  if (simTimeout) clearTimeout(simTimeout);
+  simState = null;
+  stepIndex = 0;
+  spinDisk(false);
+  moveArm(-30);
+  document.getElementById('sector-svg').innerHTML = '';
+  document.getElementById('stat-sector').textContent = '--';
+  document.getElementById('stat-lba').textContent = '--';
+  document.getElementById('stat-rpm').textContent = '0';
+  document.getElementById('irq-badge-area').innerHTML = '';
+  document.getElementById('syscall-area').innerHTML = '';
+  document.getElementById('inode-area').textContent = '';
+  document.getElementById('queue-area').innerHTML = '';
+  document.getElementById('dma-fill').style.width = '0%';
+  document.getElementById('periph-title').textContent = 'Periférico';
+
+  layerMap.forEach(l => {
+    document.getElementById(l.card).classList.remove('active-layer');
+    document.getElementById(l.dot).classList.remove('on');
+  });
+
+  const dots = document.getElementById('phases').querySelectorAll('.phase-dot');
+  dots.forEach(d => d.classList.remove('done','current'));
+
+  document.querySelectorAll('.btn-periph').forEach(b => b.classList.remove('active'));
+}
+
+function toggleInfo(id) {
+  const el = document.getElementById(id);
+  el.classList.toggle('show');
+  document.querySelectorAll('.info-popup').forEach(p => {
+    if (p.id !== id) p.classList.remove('show');
+  });
+}
+
+document.addEventListener('click', function(e) {
+  if (!e.target.classList.contains('info-toggle')) {
+    document.querySelectorAll('.info-popup').forEach(p => p.classList.remove('show'));
+  }
+});
+</script>
