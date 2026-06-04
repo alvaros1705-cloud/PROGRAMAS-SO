@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>DeadlockOS — Login</title>
+<link rel="stylesheet" href="/static/css/global.css">
+<style>
+body { overflow:hidden; display:flex; justify-content:center; align-items:center; min-height:100vh; }
+
+/* Fondo animado */
+.grid-bg {
+  position:fixed; inset:0;
+  background-image:linear-gradient(rgba(0,153,255,.05) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,153,255,.05) 1px,transparent 1px);
+  background-size:50px 50px;
+  animation:gridShift 20s linear infinite;
+}
+@keyframes gridShift { from{background-position:0 0} to{background-position:50px 50px} }
+
+/* Orbes de fondo */
+.orb { position:fixed; border-radius:50%; pointer-events:none; filter:blur(80px); }
+.orb1 { width:500px;height:500px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(0,80,180,.2),transparent 70%);animation:orbFloat1 12s ease-in-out infinite; }
+.orb2 { width:400px;height:400px;bottom:-80px;right:-80px;background:radial-gradient(circle,rgba(100,0,200,.15),transparent 70%);animation:orbFloat2 15s ease-in-out infinite; }
+.orb3 { width:300px;height:300px;top:50%;left:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,rgba(0,120,200,.08),transparent 70%);animation:orbFloat3 8s ease-in-out infinite; }
+@keyframes orbFloat1 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(40px,30px)} }
+@keyframes orbFloat2 { 0%,100%{transform:translate(0,0)} 50%{transform:translate(-30px,-40px)} }
+@keyframes orbFloat3 { 0%,100%{transform:translate(-50%,-50%) scale(1)} 50%{transform:translate(-50%,-50%) scale(1.2)} }
+
+/* Partículas flotantes */
+.lp { position:fixed; width:1px; height:1px; background:rgba(0,200,255,.6); border-radius:50%; animation:lpFloat linear infinite; pointer-events:none; }
+@keyframes lpFloat { 0%{transform:translateY(100vh);opacity:0} 10%{opacity:1} 90%{opacity:.3} 100%{transform:translateY(-10px);opacity:0} }
+
+/* Card */
+.login-card {
+  position:relative; z-index:10;
+  background:rgba(6,14,26,.97);
+  border:1px solid var(--border2);
+  border-radius:4px; padding:38px 44px; width:420px;
+  box-shadow:0 0 0 1px rgba(0,170,255,.1),0 0 60px rgba(0,0,0,.9),0 0 40px rgba(0,100,255,.05);
+  animation:cardIn .5s ease;
+}
+@keyframes cardIn { from{opacity:0;transform:translateY(20px) scale(.97)} to{opacity:1;transform:none} }
+
+/* Corner decorations */
+.login-card::before, .login-card::after {
+  content:''; position:absolute; width:14px; height:14px;
+}
+.login-card::before { top:-1px;left:-1px;border-top:2px solid var(--blue2);border-left:2px solid var(--blue2);border-radius:3px 0 0 0; }
+.login-card::after  { bottom:-1px;right:-1px;border-bottom:2px solid var(--blue2);border-right:2px solid var(--blue2);border-radius:0 0 3px 0; }
+
+/* Avatar */
+.lc-avatar {
+  width:72px; height:72px; border-radius:50%;
+  background:rgba(0,153,255,.1); border:2px solid var(--border2);
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 18px; font-size:28px; position:relative;
+}
+.lc-avatar-ring {
+  position:absolute; inset:-8px; border-radius:50%;
+  border:1px solid transparent;
+  border-top-color:rgba(0,200,255,.5);
+  border-right-color:rgba(0,200,255,.2);
+  animation:ring1 3s linear infinite;
+}
+.lc-avatar-ring2 {
+  position:absolute; inset:-14px; border-radius:50%;
+  border:1px solid transparent;
+  border-bottom-color:rgba(0,153,255,.3);
+  border-left-color:rgba(0,153,255,.1);
+  animation:ring1 5s linear infinite reverse;
+}
+@keyframes ring1 { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+
+.lc-title { font-family:var(--display); font-size:20px; font-weight:900; color:var(--blue2); text-align:center; letter-spacing:.1em; margin-bottom:2px; }
+.lc-sub   { font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center; margin-bottom:24px; letter-spacing:.2em; }
+
+/* Fields */
+.lc-field { margin-bottom:13px; }
+.lc-field label { font-family:var(--mono); font-size:9px; color:var(--text2); display:block; margin-bottom:5px; letter-spacing:.1em; }
+.lc-field input {
+  width:100%; padding:10px 13px;
+  background:rgba(0,153,255,.05); border:1px solid var(--border);
+  border-radius:2px; color:var(--text); font-family:var(--mono); font-size:13px;
+  outline:none; transition:all .2s;
+}
+.lc-field input:focus { border-color:var(--blue); box-shadow:0 0 0 1px rgba(0,153,255,.2),0 0 14px rgba(0,153,255,.1); }
+
+/* Status line */
+.lc-status {
+  font-family:var(--mono); font-size:9px; color:var(--text3);
+  display:flex; align-items:center; gap:6px; margin-bottom:12px;
+  padding:6px 10px; background:rgba(0,0,0,.3); border-radius:2px;
+  border:1px solid var(--border);
+}
+.lc-status-dot { width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 5px var(--green);animation:pls 2s infinite; }
+
+/* Button */
+.lc-btn {
+  width:100%; padding:11px;
+  background:rgba(0,153,255,.15); border:1px solid var(--blue);
+  border-radius:2px; color:var(--blue2);
+  font-family:var(--display); font-size:11px; font-weight:700;
+  letter-spacing:.14em; cursor:pointer; transition:all .22s;
+}
+.lc-btn:hover { background:rgba(0,153,255,.28); box-shadow:0 0 20px rgba(0,153,255,.3); }
+.lc-btn:active { transform:scale(.98); }
+
+.lc-hint { font-family:var(--mono); font-size:9px; color:var(--text3); text-align:center; margin-top:12px; }
+.lc-hint span { color:var(--text2); }
+.lc-err { font-family:var(--mono); font-size:10px; color:var(--red); text-align:center; margin-top:7px; min-height:16px; transition:opacity .2s; }
+.spin { display:none; width:18px;height:18px;border:2px solid rgba(0,204,255,.15);border-top-color:var(--blue2);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto; }
+@keyframes spin { to{transform:rotate(360deg)} }
+
+/* Typing cursor on title */
+.cursor { display:inline-block; width:2px; height:1em; background:var(--blue2); margin-left:2px; animation:blink .8s step-end infinite; vertical-align:middle; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+</style>
+</head>
+<body>
+<div id="crt"></div>
+<div id="vignette"></div>
+<div class="grid-bg"></div>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+<div id="particles"></div>
+
+<div class="login-card">
+  <div class="lc-avatar">
+    <span>💀</span>
+    <div class="lc-avatar-ring"></div>
+    <div class="lc-avatar-ring2"></div>
+  </div>
+
+  <div class="lc-title" id="typeTitle"></div>
+  <div class="lc-sub">// AUTENTICACIÓN REQUERIDA //</div>
+
+  <div class="lc-status">
+    <div class="lc-status-dot"></div>
+    <span>Servidor activo en :8000 &nbsp;·&nbsp; Kernel 4.2.1-dlk</span>
+  </div>
+
+  <div class="lc-field">
+    <label>▸ USUARIO</label>
+    <input type="text" id="inp-user" value="estudiante" autocomplete="off" />
+  </div>
+  <div class="lc-field">
+    <label>▸ CONTRASEÑA</label>
+    <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="off" />
+  </div>
+
+  <div class="lc-err" id="lc-err"></div>
+  <div class="spin" id="loading"></div>
+  <button class="lc-btn" id="lc-btn" onclick="tryLogin()">INICIAR SESIÓN →</button>
+  <div class="lc-hint">Usuario: <span>estudiante</span> &nbsp;|&nbsp; Contraseña: <span>1234</span></div>
+</div>
+
+<script src="/static/js/shared.js"></script>
+<script>
+// Typing effect en el título
+(function(){
+  const el = document.getElementById('typeTitle');
+  const text = 'DEADLOCK OS';
+  let i = 0;
+  el.innerHTML = '<span class="cursor"></span>';
+  function type() {
+    if (i < text.length) {
+      el.innerHTML = text.slice(0,i+1) + '<span class="cursor"></span>';
+      i++;
+      setTimeout(type, i < 8 ? 80 : 120);
+    }
+  }
+  setTimeout(type, 300);
+})();
+
+// Partículas
+(function(){
+  const c = document.getElementById('particles');
+  for(let i=0;i<16;i++){
+    const p = document.createElement('div'); p.className='lp';
+    p.style.cssText=`left:${Math.random()*100}%;animation-duration:${8+Math.random()*12}s;animation-delay:${Math.random()*10}s;width:${Math.random()>0.7?2:1}px;height:${Math.random()>0.7?2:1}px`;
+    c.appendChild(p);
+  }
+})();
+
+document.getElementById('inp-pass').addEventListener('keydown', e => { if(e.key==='Enter') tryLogin(); });
+
+async function tryLogin() {
+  const user = document.getElementById('inp-user').value.trim();
+  const pass = document.getElementById('inp-pass').value;
+  const err  = document.getElementById('lc-err');
+  const btn  = document.getElementById('lc-btn');
+  const ring = document.getElementById('loading');
+
+  err.textContent = '';
+  btn.style.display = 'none';
+  ring.style.display = 'block';
+
+  try {
+    const data = await API.post('/api/auth', { user, password: pass });
+    sessionStorage.setItem('dlk_user', data.user);
+    sessionStorage.setItem('dlk_role', data.role);
+    document.body.style.transition = 'opacity .4s';
+    document.body.style.opacity = '0';
+    setTimeout(() => window.location.href = '/desktop', 400);
+  } catch(e) {
+    err.textContent = '✖ ' + e.message;
+    document.getElementById('inp-pass').value = '';
+    document.getElementById('inp-pass').focus();
+    btn.style.display = 'block';
+    ring.style.display = 'none';
+  }
+}
+</script>
+</body>
+</html>

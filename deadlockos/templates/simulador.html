@@ -1,0 +1,533 @@
+{% extends "base.html" %}
+{% block title %}DeadlockOS — Simulador{% endblock %}
+{% block sb_path %}/edu/simulador{% endblock %}
+{% block sb_extra %}
+<div class="sb-item" id="sim-status"><div class="sb-dot green"></div>Sin deadlock</div>
+<div class="sb-item" style="margin-left:auto;color:var(--blue2)">Módulo 4 de 5</div>
+{% endblock %}
+
+{% block head_extra %}
+<style>
+.page-wrap.full { padding-top: 68px; padding-bottom: 60px; }
+.sim-header { margin-bottom: .75rem; }
+.sim-grid {
+  display: grid;
+  grid-template-columns: 220px 1fr 260px;
+  gap: .75rem;
+  height: calc(100vh - 230px);
+  min-height: 420px;
+}
+/* panels */
+.sp { background: rgba(0,0,0,.22); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; display: flex; flex-direction: column; }
+.sph { padding: 8px 11px; border-bottom: 1px solid var(--border); background: rgba(0,136,255,.05); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.sph-t { font-family: var(--mono); font-size: 9px; color: var(--blue2); letter-spacing: .07em; }
+.sph-btn { font-family: var(--mono); font-size: 8px; padding: 2px 7px; border-radius: 2px; border: 1px solid var(--border2); background: transparent; color: var(--blue2); cursor: pointer; transition: all .18s; }
+.sph-btn:hover { background: rgba(0,136,255,.12); }
+.sph-btn.g { color: var(--green); border-color: rgba(0,255,136,.25); }
+.sph-btn.g:hover { background: rgba(0,255,136,.08); }
+.sb-scroll { flex: 1; overflow-y: auto; padding: 5px; }
+.sb-scroll::-webkit-scrollbar { width: 3px; }
+.sb-scroll::-webkit-scrollbar-thumb { background: var(--border2); }
+/* process items */
+.pi { display: flex; align-items: center; gap: 6px; padding: 7px 9px; border-radius: 2px; margin-bottom: 2px; background: rgba(0,136,255,.03); border: 1px solid var(--border); transition: all .25s; }
+.pi.dl { border-color: rgba(255,51,85,.4); animation: pifl 1s ease-in-out infinite; }
+@keyframes pifl { 0%,100%{background:rgba(255,51,85,.03)} 50%{background:rgba(255,51,85,.1)} }
+.pi-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.pi-name { font-family: var(--mono); font-size: 10px; font-weight: 700; }
+.pi-det { font-family: var(--mono); font-size: 8px; color: var(--text3); margin-top: 1px; }
+.pb { font-size: 7px; padding: 1px 5px; border-radius: 2px; font-family: var(--mono); white-space: nowrap; }
+.pbr { background: rgba(0,255,136,.12); color: var(--green); }
+.pbw { background: rgba(255,170,0,.12); color: var(--amber); }
+.pbb { background: rgba(255,51,85,.12); color: var(--red); }
+.pbi { background: rgba(0,136,255,.08); color: var(--text3); }
+/* resource items */
+.ri { padding: 7px 9px; border-radius: 2px; margin-bottom: 2px; background: rgba(0,136,255,.03); border: 1px solid var(--border); }
+.ri-top { display: flex; justify-content: space-between; margin-bottom: 3px; }
+.ri-name { font-family: var(--mono); font-size: 10px; font-weight: 700; color: var(--teal); }
+.ri-ct { font-family: var(--mono); font-size: 8px; }
+.ri-bg { height: 2px; background: rgba(0,0,0,.5); border-radius: 1px; overflow: hidden; }
+.ri-fill { height: 100%; border-radius: 1px; transition: width .4s; }
+.ri-held { font-family: var(--mono); font-size: 7px; color: var(--text3); margin-top: 3px; }
+/* RAG */
+.rag-w { background: rgba(0,0,0,.28); border: 1px solid var(--border); border-radius: 3px; overflow: hidden; display: flex; flex-direction: column; }
+.rag-h { padding: 8px 11px; border-bottom: 1px solid var(--border); background: rgba(0,136,255,.05); display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.rag-cw { flex: 1; position: relative; }
+#ragC { position: absolute; inset: 0; width: 100%; height: 100%; }
+.leg { display: flex; align-items: center; gap: 4px; font-family: var(--mono); font-size: 8px; color: var(--text3); }
+.leg-l { width: 12px; height: 2px; }
+/* controls */
+.ctrl-sb { flex: 1; overflow-y: auto; padding: 6px; display: flex; flex-direction: column; gap: 5px; }
+.ctrl-sb::-webkit-scrollbar { width: 3px; }
+.csec { background: rgba(0,0,0,.2); border-radius: 2px; padding: 8px; }
+.csec-t { font-family: var(--mono); font-size: 8px; color: var(--blue); letter-spacing: .1em; margin-bottom: 6px; }
+.cbtn { width: 100%; padding: 7px 10px; border-radius: 2px; border: 1px solid var(--border2); background: rgba(0,136,255,.05); color: var(--text); font-family: var(--mono); font-size: 10px; cursor: pointer; transition: all .15s; margin-bottom: 3px; display: flex; align-items: center; justify-content: center; gap: 5px; }
+.cbtn:last-child { margin-bottom: 0; }
+.cbtn:hover { background: rgba(0,136,255,.14); border-color: var(--blue); color: var(--blue2); }
+.cbtn.danger { color: var(--red); border-color: rgba(255,51,85,.22); background: rgba(255,51,85,.04); }
+.cbtn.danger:hover { background: rgba(255,51,85,.11); border-color: var(--red); }
+.cbtn.ok { color: var(--green); border-color: rgba(0,255,136,.22); background: rgba(0,255,136,.04); }
+.cbtn.ok:hover { background: rgba(0,255,136,.11); border-color: var(--green); }
+.asel { width: 100%; padding: 6px 8px; border-radius: 2px; border: 1px solid var(--border2); background: rgba(0,0,0,.4); color: var(--text); font-family: var(--mono); font-size: 10px; margin-bottom: 5px; cursor: pointer; outline: none; }
+.asel:focus { border-color: var(--blue); }
+.pgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+.pbtn2 { padding: 6px 3px; border-radius: 2px; border: 1px solid var(--border); background: rgba(0,0,0,.3); color: var(--text2); font-family: var(--mono); font-size: 8px; cursor: pointer; transition: all .15s; text-align: center; line-height: 1.4; }
+.pbtn2:hover { border-color: var(--blue2); color: var(--blue2); }
+.chips { display: flex; flex-wrap: wrap; gap: 3px; }
+.chip { display: flex; align-items: center; gap: 3px; padding: 2px 6px; border-radius: 10px; border: 1px solid var(--border); font-family: var(--mono); font-size: 8px; color: var(--text3); transition: all .3s; }
+.chip.on { border-color: rgba(255,51,85,.4); color: var(--red); background: rgba(255,51,85,.06); }
+.cd { width: 4px; height: 4px; border-radius: 50%; background: var(--text3); transition: background .3s; flex-shrink: 0; }
+.chip.on .cd { background: var(--red); box-shadow: 0 0 4px var(--red); }
+.dl-al { background: rgba(255,51,51,.08); border: 1px solid rgba(255,51,51,.35); border-radius: 2px; padding: 7px 9px; display: none; margin-bottom: 4px; }
+.dl-al.show { display: block; animation: alp .3s ease; }
+@keyframes alp { from{transform:scale(.95);opacity:0} to{transform:scale(1);opacity:1} }
+.dl-al-t { font-family: var(--mono); font-size: 9px; color: var(--red); font-weight: 700; }
+.dl-al-b { font-family: var(--mono); font-size: 8px; color: rgba(255,51,85,.7); margin-top: 2px; line-height: 1.4; }
+.elog { height: 100px; overflow-y: auto; font-family: var(--mono); font-size: 9px; }
+.elog::-webkit-scrollbar { width: 3px; }
+.le { padding: 2px 0; border-bottom: 1px solid rgba(0,136,255,.04); line-height: 1.5; }
+.lt2 { color: var(--text3); margin-right: 4px; }
+.li { color: var(--text2); } .lw { color: var(--amber); } .le2 { color: var(--red); } .ls { color: var(--green); }
+.exp-box { padding: 7px 11px; border-top: 1px solid var(--border); font-family: var(--mono); font-size: 10px; color: var(--text2); line-height: 1.6; background: rgba(0,0,0,.2); flex-shrink: 0; }
+.exp-lb { font-size: 8px; color: var(--blue); margin-bottom: 2px; letter-spacing: .08em; }
+/* loading spinner */
+.spin-inline { display: inline-block; width: 10px; height: 10px; border: 1.5px solid rgba(0,204,255,.2); border-top-color: var(--blue2); border-radius: 50%; animation: spin .6s linear infinite; }
+@keyframes spin { to{transform:rotate(360deg)} }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap full">
+  <div class="sim-header">
+    <div class="sec-tag" style="margin-bottom:3px">// módulo 04 — simulador interactivo</div>
+    <h2 style="font-family:var(--display);font-size:20px;font-weight:700;color:var(--blue2);margin-bottom:3px">
+      Simulador de <span style="color:var(--red)">Deadlock</span> en Tiempo Real
+    </h2>
+    <p style="font-size:12px;color:var(--text2)">
+      Carga un escenario o construye uno manualmente. El grafo RAG detecta ciclos en tiempo real mediante la API del servidor.
+    </p>
+  </div>
+
+  <div class="sim-grid">
+    <!-- LEFT: Procesos + Recursos -->
+    <div style="display:flex;flex-direction:column;gap:.6rem;overflow:hidden">
+      <div class="sp" style="flex:1">
+        <div class="sph">
+          <span class="sph-t">⚙ PROCESOS</span>
+          <button class="sph-btn" onclick="doAction('add_process')">+ agregar</button>
+        </div>
+        <div class="sb-scroll" id="procList">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);padding:8px;text-align:center">Sin procesos</div>
+        </div>
+      </div>
+      <div class="sp" style="flex:1">
+        <div class="sph">
+          <span class="sph-t">🗄 RECURSOS</span>
+          <button class="sph-btn g" onclick="doAction('add_resource')">+ agregar</button>
+        </div>
+        <div class="sb-scroll" id="resList">
+          <div style="font-family:var(--mono);font-size:9px;color:var(--text3);padding:8px;text-align:center">Sin recursos</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: RAG Canvas -->
+    <div class="rag-w">
+      <div class="rag-h">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--blue2)">
+          📊 GRAFO DE ASIGNACIÓN DE RECURSOS (RAG)
+          <span id="ragLoading" class="spin-inline" style="display:none;margin-left:6px"></span>
+        </span>
+        <div style="display:flex;gap:9px">
+          <div class="leg"><div class="leg-l" style="background:var(--green)"></div>asignado</div>
+          <div class="leg"><div class="leg-l" style="background:var(--amber)"></div>solicitado</div>
+          <div class="leg"><div class="leg-l" style="background:var(--red)"></div>ciclo/DL</div>
+        </div>
+      </div>
+      <div class="rag-cw"><canvas id="ragC"></canvas></div>
+    </div>
+
+    <!-- RIGHT: Controls -->
+    <div class="sp">
+      <div class="sph"><span class="sph-t">🎮 CONTROLES</span></div>
+      <div class="ctrl-sb">
+
+        <div class="csec">
+          <div class="csec-t">ESCENARIOS PREDEFINIDOS</div>
+          <div class="pgrid">
+            <div class="pbtn2" onclick="loadPreset('simple')">Deadlock 2P<br><span style="color:var(--red)">simple</span></div>
+            <div class="pbtn2" onclick="loadPreset('triangle')">Triángulo<br><span style="color:var(--red)">3P</span></div>
+            <div class="pbtn2" onclick="loadPreset('safe')">Sin DL<br><span style="color:var(--green)">seguro</span></div>
+            <div class="pbtn2" onclick="loadPreset('complex')">Complejo<br><span style="color:var(--amber)">4P</span></div>
+          </div>
+        </div>
+
+        <div class="csec">
+          <div class="csec-t">ACCIONES MANUALES</div>
+          <select class="asel" id="aProc"><option value="">— Proceso —</option></select>
+          <select class="asel" id="aRes"><option value="">— Recurso —</option></select>
+          <button class="cbtn ok" onclick="doAction('assign')">✔ Asignar recurso</button>
+          <button class="cbtn" onclick="doAction('request')">⏳ Solicitar recurso</button>
+          <button class="cbtn danger" onclick="doAction('release')">✖ Liberar recurso</button>
+        </div>
+
+        <div class="csec">
+          <div class="csec-t">CONDICIONES COFFMAN DETECTADAS</div>
+          <div class="chips">
+            <div class="chip" id="ch1"><div class="cd"></div>Excl. mutua</div>
+            <div class="chip" id="ch2"><div class="cd"></div>Ret. espera</div>
+            <div class="chip" id="ch3"><div class="cd"></div>No apropi.</div>
+            <div class="chip" id="ch4"><div class="cd"></div>Circular</div>
+          </div>
+        </div>
+
+        <div class="csec">
+          <div class="dl-al" id="dlAl">
+            <div class="dl-al-t">🔴 ¡DEADLOCK DETECTADO!</div>
+            <div class="dl-al-b" id="dlAlB">Ciclo de espera identificado.</div>
+          </div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+            <div class="csec-t" style="margin-bottom:0">REGISTRO DE EVENTOS</div>
+            <button onclick="clearLog()" style="font-family:var(--mono);font-size:8px;padding:1px 5px;border-radius:2px;border:1px solid var(--border);background:transparent;color:var(--text3);cursor:pointer">limpiar</button>
+          </div>
+          <div class="elog" id="elog"></div>
+        </div>
+
+        <button class="cbtn danger" onclick="doAction('reset')">↺ Reiniciar simulador</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Explain box -->
+  <div class="exp-box" id="expBox">
+    <div class="exp-lb">// ESTADO ACTUAL DEL SISTEMA</div>
+    <div id="expText">Carga un escenario predefinido o agrega procesos y recursos manualmente para comenzar.</div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pag-bar" style="margin-top:.75rem;padding-bottom:1.5rem">
+    <div class="pag-info">Módulo <span>4</span> de <span>5</span></div>
+    <div class="pag-btns">
+      <a href="/coffman" class="btn" style="border-color:var(--border2);color:var(--text2)">← Coffman</a>
+      <a href="/resumen" class="btn btn-primary">Siguiente: Resumen →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+requireAuth();
+
+// ── Estado local (espejo del backend) ─────────
+let state = { processes: [], resources: [], coffman: {}, log: [] };
+
+// ── Helpers UI ────────────────────────────────
+function renderProcs() {
+  const el = document.getElementById('procList');
+  const cycle = state.coffman.cycle || [];
+  if (!state.processes.length) {
+    el.innerHTML = '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);padding:8px;text-align:center">Sin procesos</div>';
+    return;
+  }
+  const sm = { idle:'pbi', running:'pbr', waiting:'pbw', blocked:'pbb' };
+  const sl = { idle:'inactivo', running:'ejecutando', waiting:'esperando', blocked:'bloqueado' };
+  el.innerHTML = state.processes.map(p => {
+    const h = p.holds.length ? 'Retiene: ' + p.holds.join(', ') : 'Sin recursos';
+    const w = p.waiting ? ' · Espera: ' + p.waiting : '';
+    const dl = cycle.includes(p.id) ? 'dl' : '';
+    return `<div class="pi ${dl}" style="position:relative">
+      <div class="pi-dot" style="background:${p.color}"></div>
+      <div style="flex:1">
+        <div class="pi-name" style="color:${p.color}">${p.id}</div>
+        <div class="pi-det">${h}${w}</div>
+      </div>
+      <div class="pb ${sm[p.state]||'pbi'}" style="margin-right:6px">${sl[p.state]||p.state}</div>
+      <button onclick="removeItem('process','${p.id}')" title="Eliminar ${p.id}"
+        style="background:rgba(255,68,102,.08);border:1px solid rgba(255,68,102,.3);border-radius:2px;color:var(--red);cursor:pointer;font-size:11px;padding:2px 6px;transition:all .15s;flex-shrink:0"
+        onmouseover="this.style.background='rgba(255,68,102,.2)'"
+        onmouseout="this.style.background='rgba(255,68,102,.08)'">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function renderRess() {
+  const el = document.getElementById('resList');
+  if (!state.resources.length) {
+    el.innerHTML = '<div style="font-family:var(--mono);font-size:9px;color:var(--text3);padding:8px;text-align:center">Sin recursos</div>';
+    return;
+  }
+  el.innerHTML = state.resources.map(r => {
+    const pct = (r.available / r.total) * 100;
+    const held = r.heldBy.length ? r.heldBy.join(', ') : 'ninguno';
+    const col = r.available > 0 ? 'var(--green)' : 'var(--red)';
+    return `<div class="ri">
+      <div class="ri-top">
+        <div class="ri-name">${r.id}</div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <span class="ri-ct" style="color:${col}">${r.available}/${r.total}</span>
+          <button onclick="removeItem('resource','${r.id}')" title="Eliminar ${r.id}"
+            style="background:rgba(255,68,102,.08);border:1px solid rgba(255,68,102,.3);border-radius:2px;color:var(--red);cursor:pointer;font-size:10px;padding:1px 5px;transition:all .15s;flex-shrink:0"
+            onmouseover="this.style.background='rgba(255,68,102,.2)'"
+            onmouseout="this.style.background='rgba(255,68,102,.08)'">✕</button>
+        </div>
+      </div>
+      <div class="ri-bg"><div class="ri-fill" style="width:${pct}%;background:${col}"></div></div>
+      <div class="ri-held">→ ${held}</div>
+    </div>`;
+  }).join('');
+}
+
+function updSel() {
+  const ps = document.getElementById('aProc'), rs = document.getElementById('aRes');
+  const pv = ps.value, rv = rs.value;
+  ps.innerHTML = '<option value="">— Proceso —</option>' +
+    state.processes.map(p => `<option value="${p.id}">${p.id}</option>`).join('');
+  rs.innerHTML = '<option value="">— Recurso —</option>' +
+    state.resources.map(r => `<option value="${r.id}">${r.id}</option>`).join('');
+  ps.value = pv; rs.value = rv;
+}
+
+function renderChips(coffman) {
+  const map = { ch1: coffman.mutual_exclusion, ch2: coffman.hold_wait,
+                ch3: coffman.no_preemption,    ch4: coffman.circular_wait };
+  Object.entries(map).forEach(([id, v]) => {
+    document.getElementById(id).classList.toggle('on', !!v);
+  });
+}
+
+function renderLog(log) {
+  const el = document.getElementById('elog');
+  el.innerHTML = (log || []).map(e => {
+    const cls = { i:'li', w:'lw', e:'le2', s:'ls' }[e.kind] || 'li';
+    return `<div class="le"><span class="lt2">[${String(e.t).padStart(3,'0')}]</span><span class="${cls}">${e.msg}</span></div>`;
+  }).join('');
+}
+function clearLog() {
+  document.getElementById('elog').innerHTML = '';
+}
+
+function renderDeadlockAlert(coffman) {
+  const al = document.getElementById('dlAl');
+  const sb = document.getElementById('sim-status');
+  if (coffman.deadlock) {
+    al.classList.add('show');
+    document.getElementById('dlAlB').textContent =
+      'Ciclo: ' + coffman.cycle.join(' → ') + ' → ' + coffman.cycle[0];
+    if (sb) {
+      sb.innerHTML = '<div class="sb-dot amber" style="animation:pls 1s infinite"></div>⚠ DEADLOCK ACTIVO';
+      sb.style.color = 'var(--red)';
+    }
+    showNotif('🔴', '¡Deadlock detectado!', 'Ciclo: ' + coffman.cycle.join('→') + '. Libera un recurso.', 4000);
+  } else {
+    al.classList.remove('show');
+    if (sb) { sb.innerHTML = '<div class="sb-dot green"></div>Sin deadlock'; sb.style.color = ''; }
+  }
+}
+
+function updateExplain(coffman, processes) {
+  const el = document.getElementById('expText');
+  const cycle = coffman.cycle || [];
+  if (!processes.length) {
+    el.textContent = 'Carga un escenario o agrega procesos y recursos.'; return;
+  }
+  const blocked = processes.filter(p => p.state === 'blocked');
+  const running = processes.filter(p => p.state === 'running');
+  if (cycle.length) {
+    el.innerHTML = `<span style="color:var(--red)">⚠ DEADLOCK ACTIVO</span> — Procesos <strong>${cycle.join(', ')}</strong> forman un ciclo de espera circular. Para resolver: libera un recurso de cualquier proceso del ciclo.`;
+  } else if (blocked.length) {
+    el.innerHTML = `${blocked.map(p=>`<span style="color:var(--amber)">${p.id}</span>`).join(', ')} esperando recursos. ${running.length ? 'Otros procesos ejecutan — sin deadlock aún.' : ''} Observa el grafo RAG.`;
+  } else if (running.length) {
+    el.innerHTML = `<span style="color:var(--green)">✓ Sistema normal.</span> ${running.map(p=>`<span style="color:var(--green)">${p.id}</span>`).join(', ')} ejecutando. Sin ciclos en el RAG.`;
+  } else {
+    el.textContent = 'Sistema inicializado. Usa las acciones para asignar y solicitar recursos.';
+  }
+}
+
+// ── Aplicar estado completo ────────────────────
+function applyState(data) {
+  state = data;
+  renderProcs();
+  renderRess();
+  updSel();
+  renderChips(data.coffman || {});
+  renderLog(data.log || []);
+  renderDeadlockAlert(data.coffman || {});
+  updateExplain(data.coffman || {}, data.processes || []);
+  drawRAG(data.processes || [], data.resources || [], data.coffman?.cycle || []);
+}
+
+// ── API calls ─────────────────────────────────
+async function doAction(action) {
+  const pid = document.getElementById('aProc')?.value;
+  const rid = document.getElementById('aRes')?.value;
+  document.getElementById('ragLoading').style.display = 'inline-block';
+  try {
+    const data = await API.post('/api/sim/action', { action, pid: pid||null, rid: rid||null });
+    applyState(data);
+  } catch(e) {
+    showNotif('⚠', 'Error', e.message, 3000);
+  } finally {
+    document.getElementById('ragLoading').style.display = 'none';
+  }
+}
+
+async function removeItem(type, id) {
+  const action  = type === 'process' ? 'remove_process' : 'remove_resource';
+  const payload = type === 'process' ? { action, pid: id } : { action, rid: id };
+  document.getElementById('ragLoading').style.display = 'inline-block';
+  try {
+    const data = await API.post('/api/sim/action', payload);
+    applyState(data);
+    showNotif('🗑️', 'Eliminado', `${id} eliminado del sistema.`, 2500);
+  } catch(e) {
+    showNotif('⚠', 'Error', e.message, 3000);
+  } finally {
+    document.getElementById('ragLoading').style.display = 'none';
+  }
+}
+
+async function loadPreset(name) {
+  document.getElementById('ragLoading').style.display = 'inline-block';
+  try {
+    const data = await API.post('/api/sim/action', { action: 'preset', preset: name });
+    applyState(data);
+    showNotif('🎬', 'Escenario cargado', `Escenario "${name}" activo en el simulador.`, 3000);
+  } catch(e) {
+    showNotif('⚠', 'Error', e.message, 3000);
+  } finally {
+    document.getElementById('ragLoading').style.display = 'none';
+  }
+}
+
+// ── Cargar estado inicial ──────────────────────
+async function loadInitialState() {
+  try {
+    const data = await API.get('/api/sim/state');
+    applyState(data);
+  } catch(e) { /* servidor sin estado previo, OK */ }
+}
+
+// ══════════════════════════════════════════════
+// RAG CANVAS RENDERER
+// ══════════════════════════════════════════════
+function drawRAG(processes, resources, cycle) {
+  const cv = document.getElementById('ragC');
+  if (!cv) return;
+  const wrap = cv.parentElement;
+  cv.width = wrap.clientWidth;
+  cv.height = wrap.clientHeight;
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height;
+  ctx.clearRect(0, 0, W, H);
+
+  // Background grid
+  ctx.strokeStyle = 'rgba(0,136,255,.04)'; ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 40) { ctx.beginPath(); ctx.moveTo(x,0); ctx.lineTo(x,H); ctx.stroke(); }
+  for (let y = 0; y < H; y += 40) { ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(W,y); ctx.stroke(); }
+
+  const n = processes.length, m = resources.length;
+  if (!n && !m) {
+    ctx.fillStyle = 'rgba(90,138,176,.22)';
+    ctx.font = '11px Share Tech Mono,monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('Agrega procesos y recursos para ver el grafo', W/2, H/2 - 10);
+    ctx.font = '9px Share Tech Mono,monospace';
+    ctx.fillStyle = 'rgba(90,138,176,.14)';
+    ctx.fillText('○ procesos   ◇ recursos', W/2, H/2 + 10);
+    return;
+  }
+
+  const px = W * 0.27, rx = W * 0.73;
+  const pSp = Math.min(84, (H - 50) / Math.max(n, 1));
+  const rSp = Math.min(84, (H - 50) / Math.max(m, 1));
+  const pSt = (H - pSp * (n - 1)) / 2;
+  const rSt = (H - rSp * (m - 1)) / 2;
+  const pp = {}, rp = {};
+  processes.forEach((p, i) => { pp[p.id] = { x: px, y: pSt + i * pSp }; });
+  resources.forEach((r, i) => { rp[r.id] = { x: rx, y: rSt + i * rSp }; });
+
+  // Assignment edges: resource → process (green / red if cycle)
+  resources.forEach(r => {
+    (r.heldBy || []).forEach(pid => {
+      const from = rp[r.id], to = pp[pid]; if (!from || !to) return;
+      const inC = cycle.includes(pid);
+      drawArrow(ctx, from.x - 20, from.y, to.x + 21, to.y, inC ? '#ff3355' : '#00ff88', false, inC);
+    });
+  });
+
+  // Request edges: process → resource (amber / red if cycle)
+  processes.forEach(p => {
+    if (p.waiting) {
+      const from = pp[p.id], to = rp[p.waiting]; if (!from || !to) return;
+      const inC = cycle.includes(p.id);
+      drawArrow(ctx, from.x + 21, from.y, to.x - 20, to.y, inC ? '#ff3355' : '#ffaa00', true, inC);
+    }
+  });
+
+  // Draw resource diamonds
+  resources.forEach(r => {
+    const pos = rp[r.id]; if (!pos) return;
+    const inC = (r.heldBy || []).some(p => cycle.includes(p));
+    ctx.save(); ctx.translate(pos.x, pos.y); ctx.rotate(Math.PI / 4);
+    ctx.fillStyle = inC ? 'rgba(255,51,85,.15)' : 'rgba(0,221,187,.08)';
+    ctx.strokeStyle = inC ? '#ff3355' : '#00ddbb'; ctx.lineWidth = 1.5;
+    if (inC) { ctx.shadowColor = '#ff3355'; ctx.shadowBlur = 16; }
+    ctx.beginPath(); ctx.rect(-16, -16, 32, 32); ctx.fill(); ctx.stroke();
+    ctx.shadowBlur = 0; ctx.restore();
+    ctx.fillStyle = inC ? '#ff3355' : '#00ddbb';
+    ctx.font = 'bold 10px Share Tech Mono,monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(r.id, pos.x, pos.y);
+    // Availability dot
+    ctx.beginPath(); ctx.arc(pos.x + 4, pos.y - 19, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = r.available > 0 ? '#00ff88' : '#ff3355';
+    ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 5;
+    ctx.fill(); ctx.shadowBlur = 0;
+  });
+
+  // Draw process circles
+  processes.forEach(p => {
+    const pos = pp[p.id]; if (!pos) return;
+    const inC = cycle.includes(p.id);
+    ctx.beginPath(); ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
+    ctx.fillStyle = inC ? 'rgba(255,51,85,.14)' : p.color + '20';
+    ctx.strokeStyle = inC ? '#ff3355' : p.color; ctx.lineWidth = 1.5;
+    if (inC) { ctx.shadowColor = '#ff3355'; ctx.shadowBlur = 18; }
+    ctx.fill(); ctx.stroke(); ctx.shadowBlur = 0;
+    ctx.fillStyle = inC ? '#ff3355' : p.color;
+    ctx.font = 'bold 10px Share Tech Mono,monospace';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(p.id, pos.x, pos.y);
+    // State dot
+    const sc = { running:'#00ff88', waiting:'#ffaa00', blocked:'#ff3355', idle:'#2a4a6a' };
+    ctx.beginPath(); ctx.arc(pos.x + 14, pos.y - 14, 3.5, 0, Math.PI * 2);
+    ctx.fillStyle = sc[p.state] || '#2a4a6a';
+    ctx.shadowColor = ctx.fillStyle; ctx.shadowBlur = 5;
+    ctx.fill(); ctx.shadowBlur = 0;
+  });
+}
+
+function drawArrow(ctx, x1, y1, x2, y2, color, dashed, glow) {
+  const ang = Math.atan2(y2 - y1, x2 - x1), hl = 8;
+  ctx.save();
+  ctx.strokeStyle = color; ctx.lineWidth = glow ? 2.2 : 1.5;
+  if (dashed) ctx.setLineDash([4, 3]);
+  if (glow) { ctx.shadowColor = color; ctx.shadowBlur = 10; }
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - hl * Math.cos(ang - Math.PI/7), y2 - hl * Math.sin(ang - Math.PI/7));
+  ctx.lineTo(x2 - hl * Math.cos(ang + Math.PI/7), y2 - hl * Math.sin(ang + Math.PI/7));
+  ctx.closePath(); ctx.fill(); ctx.shadowBlur = 0; ctx.restore();
+}
+
+window.addEventListener('resize', () => {
+  drawRAG(state.processes || [], state.resources || [], state.coffman?.cycle || []);
+});
+
+// Init
+loadInitialState();
+</script>
+{% endblock %}

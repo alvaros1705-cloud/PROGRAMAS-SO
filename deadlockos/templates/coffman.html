@@ -1,0 +1,175 @@
+{% extends "base.html" %}
+{% block title %}DeadlockOS — Condiciones de Coffman{% endblock %}
+{% block sb_path %}/edu/coffman{% endblock %}
+{% block sb_extra %}
+<div class="sb-item" id="coffman-sb">Condiciones: 0/4</div>
+<div class="sb-item" style="margin-left:auto;color:var(--blue2)">Módulo 3 de 5</div>
+{% endblock %}
+{% block head_extra %}
+<style>
+.coff-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:1rem;}
+.cc{background:rgba(0,0,0,.2);border:1px solid var(--border);border-radius:3px;padding:13px;cursor:pointer;transition:all .32s;position:relative;overflow:hidden;}
+.cc:hover{transform:translateY(-4px);border-color:var(--border2);}
+.cc.on{border-color:rgba(255,51,85,.5);box-shadow:0 0 18px rgba(255,51,85,.15);}
+.cc-num{position:absolute;top:5px;right:10px;font-family:var(--display);font-size:42px;font-weight:900;opacity:.04;color:var(--blue);line-height:1;pointer-events:none;}
+.cc-icon-w{width:38px;height:38px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:9px;}
+.cc-name{font-family:var(--mono);font-size:11px;color:var(--blue2);margin-bottom:5px;letter-spacing:.04em;}
+.cc-def{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:10px;}
+.cc-anim{height:62px;background:rgba(0,0,0,.3);border-radius:2px;display:flex;align-items:center;justify-content:center;margin-bottom:9px;overflow:hidden;}
+.cc-tog{display:flex;align-items:center;gap:7px;}
+.sw-lb{font-family:var(--mono);font-size:9px;color:var(--text3);}
+.vp{width:26px;height:26px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:8px;font-weight:700;border:1px solid;}
+.vr{width:28px;height:28px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;}
+.aa{font-size:11px;animation:apa .9s ease-in-out infinite;}
+@keyframes apa{0%,100%{opacity:.4}50%{opacity:1}}
+.sh-anim{font-size:23px;animation:sha 2s ease-in-out infinite;}
+@keyframes sha{0%,100%{filter:drop-shadow(0 0 3px rgba(0,221,187,.3))}50%{filter:drop-shadow(0 0 8px rgba(0,221,187,.65))}}
+.cw{position:relative;width:54px;height:54px;}
+.cn{position:absolute;width:17px;height:17px;border-radius:3px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:7px;font-weight:700;border:1px solid;background:rgba(255,51,85,.1);border-color:var(--red);color:var(--red);}
+.cn1{top:0;left:50%;transform:translateX(-50%);}
+.cn2{bottom:0;right:0;}
+.cn3{bottom:0;left:0;}
+.cns{position:absolute;inset:0;width:100%;height:100%;}
+.meter-box{background:rgba(0,0,0,.25);border:1px solid var(--border);border-radius:3px;padding:13px;margin-top:1rem;}
+.meter-bg{height:8px;background:rgba(0,136,255,.06);border-radius:4px;overflow:hidden;margin:8px 0 5px;}
+.meter-fill{height:100%;border-radius:4px;transition:width .5s ease,background .35s;}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="sec-tag">// módulo 03 — condiciones de Coffman</div>
+  <h1 class="sec-title">Las 4 Condiciones de <span class="hi">Coffman</span></h1>
+  <p class="sec-sub">Identificadas por Edward G. Coffman Jr. en 1971. Deben cumplirse <strong>todas simultáneamente</strong> para que ocurra un deadlock. Eliminar cualquiera lo previene. Haz clic en cada tarjeta para activarla.</p>
+
+  <div class="coff-grid">
+    <!-- C1 -->
+    <div class="cc fade-up" id="cc1" onclick="tCoff(1)">
+      <div class="cc-num">01</div>
+      <div class="cc-icon-w" style="background:rgba(0,136,255,.1)">🔒</div>
+      <div class="cc-name">EXCLUSIÓN MUTUA</div>
+      <div class="cc-def">Al menos un recurso es de uso exclusivo: solo un proceso puede usarlo a la vez. Si otro lo solicita, debe esperar hasta que sea liberado.</div>
+      <div class="cc-anim">
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="vp" style="background:rgba(0,136,255,.12);border-color:#0088ff;color:#0088ff">P1</div>
+          <span class="aa" style="color:var(--green)">→</span>
+          <div class="vr" style="background:rgba(255,170,0,.08);border:1px solid #ffaa00">🖨️<span style="font-size:8px">🔒</span></div>
+          <span class="aa" style="color:var(--red)">←</span>
+          <div class="vp" style="background:rgba(255,51,85,.08);border-color:#ff3355;color:#ff3355;opacity:.42;animation:apa 1.5s ease-in-out infinite">P2</div>
+        </div>
+      </div>
+      <div class="cc-tog" onclick="event.stopPropagation()">
+        <div class="sw" id="sw1" onclick="tCoff(1)"></div>
+        <span class="sw-lb">activar condición</span>
+      </div>
+    </div>
+    <!-- C2 -->
+    <div class="cc fade-up" id="cc2" onclick="tCoff(2)" style="animation-delay:.08s">
+      <div class="cc-num">02</div>
+      <div class="cc-icon-w" style="background:rgba(136,85,255,.1)">🤝</div>
+      <div class="cc-name">RETENCIÓN Y ESPERA</div>
+      <div class="cc-def">Un proceso retiene al menos un recurso mientras espera recursos adicionales que poseen otros procesos. No libera lo que ya tiene.</div>
+      <div class="cc-anim">
+        <div style="display:flex;align-items:center;gap:7px">
+          <div style="text-align:center"><div class="vp" style="background:rgba(0,136,255,.1);border-color:#0088ff;color:#0088ff;margin:0 auto 2px">P1</div><div style="width:9px;height:9px;border-radius:2px;background:var(--amber);margin:0 auto;opacity:.8"></div></div>
+          <span class="aa" style="color:var(--amber);font-size:13px">→→</span>
+          <div style="text-align:center"><div class="vp" style="background:rgba(255,170,0,.08);border-color:#ffaa00;color:#ffaa00;margin:0 auto 2px">P2</div><div style="width:9px;height:9px;border-radius:2px;background:var(--blue);margin:0 auto;opacity:.8"></div></div>
+          <span class="aa" style="color:var(--amber);font-size:13px">→→</span>
+          <span style="font-size:17px">🔄</span>
+        </div>
+      </div>
+      <div class="cc-tog" onclick="event.stopPropagation()">
+        <div class="sw" id="sw2" onclick="tCoff(2)"></div>
+        <span class="sw-lb">activar condición</span>
+      </div>
+    </div>
+    <!-- C3 -->
+    <div class="cc fade-up" id="cc3" onclick="tCoff(3)" style="animation-delay:.14s">
+      <div class="cc-num">03</div>
+      <div class="cc-icon-w" style="background:rgba(0,221,187,.08)">🛡️</div>
+      <div class="cc-name">NO APROPIACIÓN</div>
+      <div class="cc-def">Los recursos no pueden ser quitados forzosamente a un proceso. Solo el propio proceso los libera voluntariamente al terminar de usarlos.</div>
+      <div class="cc-anim">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="sh-anim">🛡️</div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--teal);line-height:1.5">El SO NO puede<br>retirar recursos<br>a la fuerza</div>
+          <span style="font-size:17px;color:var(--red);animation:apa 1.5s ease-in-out infinite">✗</span>
+        </div>
+      </div>
+      <div class="cc-tog" onclick="event.stopPropagation()">
+        <div class="sw" id="sw3" onclick="tCoff(3)"></div>
+        <span class="sw-lb">activar condición</span>
+      </div>
+    </div>
+    <!-- C4 -->
+    <div class="cc fade-up" id="cc4" onclick="tCoff(4)" style="animation-delay:.2s">
+      <div class="cc-num">04</div>
+      <div class="cc-icon-w" style="background:rgba(255,51,85,.08)">🔄</div>
+      <div class="cc-name">ESPERA CIRCULAR</div>
+      <div class="cc-def">Existe una cadena cerrada de procesos donde cada uno espera un recurso que retiene el proceso siguiente. Ciclo sin salida posible.</div>
+      <div class="cc-anim">
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="cw">
+            <div class="cn cn1">P1</div><div class="cn cn2">P2</div><div class="cn cn3">P3</div>
+            <svg class="cns" viewBox="0 0 54 54">
+              <defs><marker id="ca" markerWidth="4" markerHeight="4" refX="3" refY="2" orient="auto"><path d="M0,0 L4,2 L0,4 Z" fill="rgba(255,51,85,.7)"/></marker></defs>
+              <line x1="27" y1="17" x2="43" y2="41" stroke="rgba(255,51,85,.5)" stroke-width="1.3" marker-end="url(#ca)"/>
+              <line x1="43" y1="41" x2="11" y2="41" stroke="rgba(255,51,85,.5)" stroke-width="1.3" marker-end="url(#ca)"/>
+              <line x1="11" y1="41" x2="27" y2="17" stroke="rgba(255,51,85,.5)" stroke-width="1.3" marker-end="url(#ca)"/>
+            </svg>
+          </div>
+          <div style="font-family:var(--mono);font-size:9px;color:var(--red);line-height:1.7">P1→P2<br>P2→P3<br>P3→P1<br><span style="color:var(--text3)">sin salida</span></div>
+        </div>
+      </div>
+      <div class="cc-tog" onclick="event.stopPropagation()">
+        <div class="sw" id="sw4" onclick="tCoff(4)"></div>
+        <span class="sw-lb">activar condición</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detector meter -->
+  <div class="meter-box fade-up" style="animation-delay:.26s">
+    <div style="font-family:var(--mono);font-size:11px;color:var(--text2)">🧪 DETECTOR DE DEADLOCK — activa las 4 condiciones simultáneamente para provocar un bloqueo</div>
+    <div class="meter-bg"><div class="meter-fill" id="mbFill" style="width:0%;background:var(--green)"></div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div style="font-family:var(--mono);font-size:10px;color:var(--text3)" id="mbCt">0 / 4 condiciones activas</div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--green)" id="mbSt">✓ SISTEMA SEGURO</div>
+    </div>
+  </div>
+
+  <div class="pag-bar">
+    <div class="pag-info">Módulo <span>3</span> de <span>5</span></div>
+    <div class="pag-btns">
+      <a href="/recursos" class="btn" style="border-color:var(--border2);color:var(--text2)">← Recursos</a>
+      <a href="/simulador" class="btn btn-primary">Siguiente: Simulador →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+requireAuth();
+const cSt=[false,false,false,false];
+function tCoff(n){
+  cSt[n-1]=!cSt[n-1];
+  document.getElementById('sw'+n).classList.toggle('on',cSt[n-1]);
+  document.getElementById('cc'+n).classList.toggle('on',cSt[n-1]);
+  updateMeter();
+}
+function updateMeter(){
+  const c=cSt.filter(Boolean).length;
+  const fill=document.getElementById('mbFill');
+  fill.style.width=(c*25)+'%';
+  fill.style.background=['#00ff88','#00ddbb','#ffaa00','#ff3355','#ff3355'][c];
+  document.getElementById('mbCt').textContent=c+' / 4 condiciones activas';
+  const st=document.getElementById('mbSt');
+  const sb=document.getElementById('coffman-sb');
+  if(c===4){st.textContent='⚠ ¡DEADLOCK!';st.style.color='#ff3355';showNotif('⚠','¡Deadlock simulado!','Las 4 condiciones de Coffman están activas simultáneamente.',3500);}
+  else if(c>=2){st.textContent='⚡ RIESGO ALTO';st.style.color='#ffaa00';}
+  else{st.textContent='✓ SISTEMA SEGURO';st.style.color='#00ff88';}
+  if(sb) sb.textContent='Condiciones: '+c+'/4';
+}
+</script>
+{% endblock %}

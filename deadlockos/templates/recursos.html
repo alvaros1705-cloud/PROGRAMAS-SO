@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}DeadlockOS — Recursos{% endblock %}
+{% block sb_path %}/edu/recursos{% endblock %}
+{% block sb_extra %}
+<div class="sb-item" style="color:var(--red)">⚠ Deadlock en ejemplo</div>
+<div class="sb-item" style="margin-left:auto;color:var(--blue2)">Módulo 2 de 5</div>
+{% endblock %}
+{% block head_extra %}
+<style>
+.res-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.9rem;margin-bottom:1.75rem;}
+.res-card{border-radius:3px;padding:13px;border:1px solid var(--border);position:relative;overflow:hidden;transition:all .28s;}
+.res-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.res-card.ap::before{background:linear-gradient(90deg,var(--green),var(--teal));}
+.res-card.nap::before{background:linear-gradient(90deg,var(--red),var(--purple));}
+.res-card.comp::before{background:linear-gradient(90deg,var(--blue),var(--purple));}
+.res-card.exc::before{background:linear-gradient(90deg,var(--amber),var(--red));}
+.res-card:hover{border-color:var(--border2);transform:translateY(-3px);}
+.res-card h3{font-family:var(--mono);font-size:11px;color:var(--blue2);margin:9px 0 5px;}
+.res-card p{font-size:12px;color:var(--text2);line-height:1.6;margin-bottom:8px;}
+.res-card .ex{font-family:var(--mono);font-size:9px;color:var(--teal);background:rgba(0,0,0,.3);padding:5px 9px;border-radius:2px;}
+.res-card-icon{font-size:21px;}
+.tbl-wrap{border:1px solid var(--border);border-radius:3px;overflow:hidden;}
+.tbl-head{padding:8px 12px;background:rgba(0,136,255,.06);border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.tbl-head-t{font-family:var(--mono);font-size:10px;color:var(--blue2);}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-wrap">
+  <div class="sec-tag">// módulo 02 — recursos del sistema</div>
+  <h1 class="sec-title">Tipos de <span class="hi">Recursos</span></h1>
+  <p class="sec-sub">Los recursos son los objetos que los procesos compiten por adquirir. Su clasificación determina las estrategias de prevención de deadlocks aplicables.</p>
+
+  <div class="res-grid" id="resCards">
+    <div class="res-card ap fade-up"><div class="res-card-icon">💨</div><h3>APROPIABLE</h3><p>Puede ser retirado al proceso sin causar fallo. El SO puede desalojarlo y darlo a otro proceso.</p><div class="ex">Ej: CPU, RAM con paginación</div></div>
+    <div class="res-card nap fade-up" style="animation-delay:.08s"><div class="res-card-icon">🔐</div><h3>NO APROPIABLE</h3><p>No puede quitarse forzosamente. Debe liberarlo el proceso voluntariamente. <strong>Los más peligrosos</strong> para deadlocks.</p><div class="ex">Ej: Impresora, mutex, semáforo binario</div></div>
+    <div class="res-card comp fade-up" style="animation-delay:.14s"><div class="res-card-icon">🌐</div><h3>COMPARTIDO</h3><p>Múltiples procesos pueden usarlo simultáneamente sin interferir. No genera exclusión mutua por sí solo.</p><div class="ex">Ej: Archivos de solo lectura, ROM</div></div>
+    <div class="res-card exc fade-up" style="animation-delay:.2s"><div class="res-card-icon">⛔</div><h3>EXCLUSIVO</h3><p>Solo un proceso a la vez. Genera la condición de exclusión mutua de Coffman. Causa cuellos de botella.</p><div class="ex">Ej: Puerto serial, archivo en escritura</div></div>
+  </div>
+
+  <div class="tbl-wrap fade-up" style="animation-delay:.25s">
+    <div class="tbl-head">
+      <span class="tbl-head-t">📋 TABLA DE ASIGNACIÓN Y SOLICITUD — Escenario con deadlock activo</span>
+      <span style="font-family:var(--mono);font-size:9px;color:var(--text3)">4 procesos · 3 recursos</span>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Proceso</th><th>R1 — Impresora</th><th>R2 — Disco</th><th>R3 — Scanner</th><th>Estado</th></tr></thead>
+      <tbody>
+        <tr><td><b style="color:var(--blue2)">P1</b></td><td><span class="tag tag-hold">RETIENE</span></td><td><span class="tag tag-wait">ESPERA</span></td><td>—</td><td><span class="tag tag-block">BLOQUEADO</span></td></tr>
+        <tr><td><b style="color:var(--purple)">P2</b></td><td><span class="tag tag-wait">ESPERA</span></td><td><span class="tag tag-hold">RETIENE</span></td><td><span class="tag tag-hold">RETIENE</span></td><td><span class="tag tag-block">BLOQUEADO</span></td></tr>
+        <tr><td><b style="color:var(--amber)">P3</b></td><td>—</td><td>—</td><td><span class="tag tag-wait">ESPERA</span></td><td><span class="tag tag-free">LISTO</span></td></tr>
+        <tr><td><b style="color:var(--green)">P4</b></td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-free">EJECUTANDO</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div style="font-family:var(--mono);font-size:10px;color:var(--red);padding:8px 0 0;display:flex;align-items:center;gap:6px">
+    ⚠ Ciclo P1 ↔ P2: P1 retiene R1 y espera R2 / P2 retiene R2 y espera R1 → DEADLOCK
+  </div>
+
+  <div class="pag-bar">
+    <div class="pag-info">Módulo <span>2</span> de <span>5</span></div>
+    <div class="pag-btns">
+      <a href="/intro" class="btn" style="border-color:var(--border2);color:var(--text2)">← Introducción</a>
+      <a href="/coffman" class="btn btn-primary">Siguiente: Coffman →</a>
+    </div>
+  </div>
+</div>
+{% endblock %}
+{% block scripts %}<script>requireAuth();</script>{% endblock %}
