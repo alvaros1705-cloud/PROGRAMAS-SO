@@ -1,0 +1,2057 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>E/S Hardware & Software — Simulación Interactiva</title>
+
+  <!-- ============================================================
+       FUENTES TIPOGRÁFICAS
+       Orbitron: futurista para títulos
+       Rajdhani: técnica para etiquetas y datos
+       Exo 2: legible para cuerpo académico
+  ============================================================ -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Exo+2:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ============================================================
+       VARIABLES GLOBALES — Paleta tecnológica futurista
+       Azules profundos + acentos cian/neón + púrpura de acento
+    ============================================================ */
+    :root {
+      --bg-deep:      #020917;        /* fondo más oscuro */
+      --bg-panel:     #040d1f;        /* paneles */
+      --bg-card:      rgba(6, 20, 45, 0.85);
+      --glass:        rgba(10, 30, 70, 0.55);
+      --border:       rgba(0, 200, 255, 0.18);
+      --border-glow:  rgba(0, 200, 255, 0.55);
+
+      --cyan:    #00e5ff;
+      --cyan2:   #00b4d8;
+      --purple:  #7b2fff;
+      --purple2: #a855f7;
+      --green:   #00ff9d;
+      --orange:  #ff7b00;
+      --red:     #ff3b5c;
+
+      --text-primary:   #d4eaff;
+      --text-secondary: #6a97c4;
+      --text-muted:     #2d5278;
+
+      --font-display: 'Orbitron', monospace;
+      --font-tech:    'Rajdhani', sans-serif;
+      --font-body:    'Exo 2', sans-serif;
+
+      /* Velocidad animación paquete (ms por etapa) */
+      --step-duration: 1400;
+    }
+
+    /* ============================================================
+       RESET Y BASE
+    ============================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg-deep);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ============================================================
+       FONDO ANIMADO — Partículas + grid tecnológico
+    ============================================================ */
+    #canvas-bg {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ============================================================
+       PORTADA / HERO
+    ============================================================ */
+    #hero {
+      position: relative;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 40px 20px;
+      z-index: 10;
+    }
+
+    /* Badge de asignatura */
+    .badge-asignatura {
+      display: inline-block;
+      border: 1px solid var(--cyan2);
+      color: var(--cyan2);
+      font-family: var(--font-tech);
+      font-size: 0.72rem;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      padding: 6px 20px;
+      border-radius: 30px;
+      margin-bottom: 32px;
+      background: rgba(0, 180, 216, 0.07);
+      animation: fadeDown 0.8s ease both;
+    }
+
+    /* Título principal */
+    .hero-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 5vw, 4rem);
+      font-weight: 900;
+      line-height: 1.1;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      animation: fadeDown 0.9s 0.15s ease both;
+    }
+
+    .hero-title .line1 {
+      display: block;
+      background: linear-gradient(135deg, #ffffff 0%, var(--cyan) 60%, var(--purple2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .hero-title .line2 {
+      display: block;
+      font-size: 55%;
+      color: var(--cyan2);
+      -webkit-text-fill-color: var(--cyan2);
+      letter-spacing: 6px;
+      margin-top: 8px;
+    }
+
+    /* Subtítulo */
+    .hero-sub {
+      font-family: var(--font-tech);
+      font-size: clamp(0.9rem, 2.5vw, 1.2rem);
+      color: var(--text-secondary);
+      max-width: 680px;
+      margin: 0 auto 48px;
+      letter-spacing: 0.5px;
+      animation: fadeDown 1s 0.3s ease both;
+    }
+
+    /* Autores */
+    .authors-row {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 52px;
+      animation: fadeDown 1.1s 0.45s ease both;
+    }
+
+    .author-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 28px;
+      backdrop-filter: blur(16px);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+    .author-card:hover {
+      border-color: var(--border-glow);
+      box-shadow: 0 0 20px rgba(0, 200, 255, 0.15);
+    }
+
+    .author-avatar {
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      border: 2px solid var(--cyan2);
+      background: linear-gradient(135deg, var(--purple), var(--cyan2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .author-info { text-align: left; }
+    .author-name {
+      font-family: var(--font-tech);
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text-primary);
+    }
+    .author-role {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+
+    /* Botón principal */
+    .btn-start {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--bg-deep);
+      background: linear-gradient(135deg, var(--cyan) 0%, var(--purple2) 100%);
+      border: none;
+      border-radius: 50px;
+      padding: 18px 52px;
+      cursor: pointer;
+      overflow: hidden;
+      animation: fadeDown 1.2s 0.6s ease both, pulseCta 3s 2s infinite;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .btn-start::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, transparent 60%);
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .btn-start:hover { transform: scale(1.06); box-shadow: 0 0 50px rgba(0,229,255,0.5), 0 0 100px rgba(123,47,255,0.3); }
+    .btn-start:hover::before { opacity: 1; }
+    .btn-start:active { transform: scale(0.97); }
+
+    .btn-arrow {
+      font-size: 1.3rem;
+      display: inline-block;
+      transition: transform 0.3s;
+    }
+    .btn-start:hover .btn-arrow { transform: translateX(5px); }
+
+    @keyframes pulseCta {
+      0%, 100% { box-shadow: 0 0 20px rgba(0,229,255,0.3); }
+      50%       { box-shadow: 0 0 45px rgba(0,229,255,0.6), 0 0 80px rgba(123,47,255,0.3); }
+    }
+
+    /* Flecha scroll */
+    .scroll-hint {
+      position: absolute;
+      bottom: 28px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      animation: bounce 2s infinite;
+      cursor: pointer;
+    }
+    .scroll-hint::after { content: ' ↓'; }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateX(-50%) translateY(0); }
+      50%       { transform: translateX(-50%) translateY(8px); }
+    }
+
+    /* ============================================================
+       SECCIÓN SIMULACIÓN
+    ============================================================ */
+    #simulacion {
+      position: relative;
+      z-index: 10;
+      padding: 80px 20px;
+    }
+
+    .section-header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .section-tag {
+      display: inline-block;
+      font-family: var(--font-tech);
+      font-size: 0.7rem;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      color: var(--cyan2);
+      margin-bottom: 12px;
+    }
+
+    .section-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.4rem, 3.5vw, 2.4rem);
+      font-weight: 700;
+      background: linear-gradient(90deg, #fff 30%, var(--cyan));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* Panel de control — parte superior */
+    .control-panel {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: center;
+      max-width: 1100px;
+      margin: 0 auto 36px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 28px;
+      backdrop-filter: blur(20px);
+    }
+
+    .ctrl-left { display: flex; flex-direction: column; gap: 6px; }
+    .ctrl-label {
+      font-family: var(--font-tech);
+      font-size: 0.7rem;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .ctrl-value {
+      font-family: var(--font-display);
+      font-size: 1.05rem;
+      color: var(--cyan);
+    }
+
+    /* Selector de periférico */
+    .periph-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 1100px;
+      margin: 0 auto 36px;
+    }
+
+    .periph-btn {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 20px;
+      color: var(--text-secondary);
+      font-family: var(--font-tech);
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.25s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .periph-btn:hover, .periph-btn.active {
+      border-color: var(--cyan2);
+      color: var(--cyan);
+      background: rgba(0, 180, 216, 0.1);
+      box-shadow: 0 0 14px rgba(0, 200, 255, 0.15);
+    }
+
+    .periph-btn .p-icon { font-size: 1.1rem; }
+
+    /* ============================================================
+       PIPELINE DE COMPONENTES
+    ============================================================ */
+    .pipeline-wrapper {
+      max-width: 1100px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    /* Línea de flujo de fondo */
+    .pipeline-track {
+      position: absolute;
+      left: 50%;
+      top: 60px;
+      bottom: 60px;
+      width: 2px;
+      background: linear-gradient(180deg, transparent, var(--border) 10%, var(--border) 90%, transparent);
+      transform: translateX(-50%);
+      z-index: 0;
+    }
+
+    /* Cada componente en el pipeline */
+    .pipeline-stages {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Fila de componente */
+    .stage-row {
+      display: grid;
+      grid-template-columns: 1fr 72px 1fr;
+      align-items: center;
+      gap: 0;
+    }
+
+    /* Tarjeta de componente */
+    .component-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 22px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      backdrop-filter: blur(18px);
+      transition: border-color 0.35s, box-shadow 0.35s, transform 0.35s;
+      position: relative;
+      overflow: hidden;
+      cursor: default;
+    }
+
+    /* Fila derecha — alineada al inicio izquierda */
+    .stage-row.right-side .component-card { grid-column: 3; }
+
+    /* Glow al activarse */
+    .component-card.active {
+      border-color: var(--cyan);
+      box-shadow: 0 0 28px rgba(0, 229, 255, 0.35), inset 0 0 40px rgba(0, 229, 255, 0.05);
+      transform: scale(1.02);
+    }
+
+    .component-card.done {
+      border-color: var(--green);
+      box-shadow: 0 0 16px rgba(0, 255, 157, 0.2);
+    }
+
+    /* Borde de progreso animado */
+    .component-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--cyan), var(--purple2));
+      opacity: 0;
+      transition: opacity 0.4s;
+      z-index: -1;
+      margin: -1px;
+    }
+
+    .component-card.active::before { opacity: 0.4; }
+
+    /* Scan line efecto dentro de la card */
+    .component-card::after {
+      content: '';
+      position: absolute;
+      top: -100%;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+      opacity: 0;
+    }
+
+    .component-card.active::after {
+      animation: scanCard 1.2s ease-in-out;
+    }
+
+    @keyframes scanCard {
+      0%   { top: -5%; opacity: 0.9; }
+      100% { top: 105%; opacity: 0; }
+    }
+
+    /* Ícono del componente */
+    .comp-icon {
+      font-size: 2rem;
+      min-width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+      background: rgba(0, 180, 216, 0.08);
+      border: 1px solid rgba(0, 180, 216, 0.12);
+      transition: background 0.35s;
+    }
+
+    .component-card.active .comp-icon {
+      background: rgba(0, 229, 255, 0.2);
+      border-color: rgba(0, 229, 255, 0.4);
+      animation: iconPulse 0.8s ease infinite alternate;
+    }
+
+    @keyframes iconPulse {
+      to { box-shadow: 0 0 18px rgba(0,229,255,0.5); }
+    }
+
+    /* Info del componente */
+    .comp-info { flex: 1; min-width: 0; }
+
+    .comp-label {
+      font-family: var(--font-tech);
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+
+    .comp-name {
+      font-family: var(--font-display);
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: 0.5px;
+    }
+
+    .comp-msg {
+      font-family: var(--font-tech);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      min-height: 1.1em;
+      transition: color 0.3s;
+    }
+
+    .component-card.active .comp-msg { color: var(--cyan); }
+    .component-card.done .comp-msg   { color: var(--green); }
+
+    /* Estado badge dentro de la card */
+    .comp-status {
+      font-family: var(--font-tech);
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(0,0,0,0.4);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      white-space: nowrap;
+      transition: all 0.3s;
+    }
+
+    .component-card.active .comp-status {
+      background: rgba(0,229,255,0.1);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
+    .component-card.done .comp-status {
+      background: rgba(0,255,157,0.1);
+      border-color: var(--green);
+      color: var(--green);
+    }
+
+    /* Nodo central del pipeline (conector) */
+    .stage-center {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .pipeline-node {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      background: var(--bg-deep);
+      transition: border-color 0.3s, box-shadow 0.3s, background 0.3s;
+      position: relative;
+      z-index: 2;
+    }
+
+    .pipeline-node.active {
+      border-color: var(--cyan);
+      background: var(--cyan);
+      box-shadow: 0 0 16px var(--cyan);
+    }
+
+    .pipeline-node.done {
+      border-color: var(--green);
+      background: var(--green);
+    }
+
+    /* Flecha entre nodos */
+    .stage-arrow {
+      width: 2px;
+      height: 28px;
+      background: linear-gradient(180deg, var(--border), var(--border));
+      position: relative;
+      margin: 0 auto;
+      transition: background 0.3s;
+    }
+
+    .stage-arrow.lit {
+      background: linear-gradient(180deg, var(--cyan), var(--cyan2));
+      box-shadow: 0 0 8px var(--cyan2);
+    }
+
+    /* ============================================================
+       PAQUETE DE DATOS ANIMADO
+    ============================================================ */
+    #data-packet {
+      position: fixed;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 35% 35%, var(--cyan), var(--purple));
+      border: 2px solid #fff;
+      box-shadow: 0 0 20px var(--cyan), 0 0 40px rgba(0, 229, 255, 0.4);
+      z-index: 9999;
+      pointer-events: none;
+      display: none;
+      transition: left 0.7s cubic-bezier(0.4, 0, 0.2, 1), top 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #data-packet::after {
+      content: '⬡';
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.7rem;
+      color: #fff;
+      animation: spin 2s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Trail del paquete */
+    .packet-trail {
+      position: fixed;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--cyan);
+      z-index: 9998;
+      pointer-events: none;
+      animation: trailFade 0.6s ease forwards;
+    }
+
+    @keyframes trailFade {
+      to { opacity: 0; transform: scale(0.1); }
+    }
+
+    /* ============================================================
+       PANEL DE ESTADÍSTICAS EN TIEMPO REAL
+    ============================================================ */
+    .stats-panel {
+      max-width: 1100px;
+      margin: 36px auto 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 14px;
+    }
+
+    .stat-card {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      backdrop-filter: blur(16px);
+      text-align: center;
+      transition: border-color 0.3s;
+    }
+
+    .stat-card:hover { border-color: var(--border-glow); }
+
+    .stat-icon { font-size: 1.5rem; margin-bottom: 8px; }
+
+    .stat-label {
+      font-family: var(--font-tech);
+      font-size: 0.65rem;
+      letter-spacing: 3px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-family: var(--font-display);
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: var(--cyan);
+    }
+
+    /* Barra de progreso global */
+    .progress-bar-wrapper {
+      max-width: 1100px;
+      margin: 24px auto 0;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid var(--border);
+      border-radius: 50px;
+      padding: 5px;
+      backdrop-filter: blur(16px);
+    }
+
+    .progress-bar-inner {
+      height: 10px;
+      border-radius: 50px;
+      background: linear-gradient(90deg, var(--cyan), var(--purple2));
+      width: 0%;
+      transition: width 0.6s ease;
+      box-shadow: 0 0 14px rgba(0,229,255,0.5);
+    }
+
+    /* ============================================================
+       SECCIÓN ACADÉMICA
+    ============================================================ */
+    #academico {
+      position: relative;
+      z-index: 10;
+      padding: 80px 20px;
+    }
+
+    .academic-grid {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+    }
+
+    .acad-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 28px 26px;
+      backdrop-filter: blur(18px);
+      transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .acad-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--cyan), var(--purple2));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .acad-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--border-glow);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+    }
+
+    .acad-card:hover::before { opacity: 1; }
+
+    .acad-icon {
+      font-size: 2.2rem;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .acad-title {
+      font-family: var(--font-display);
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 1px;
+      margin-bottom: 12px;
+    }
+
+    .acad-body {
+      font-size: 0.88rem;
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+
+    .acad-body strong { color: var(--text-primary); }
+
+    .acad-examples {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+
+    .acad-examples .ex-label {
+      font-family: var(--font-tech);
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .ex-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .ex-tag {
+      font-family: var(--font-tech);
+      font-size: 0.75rem;
+      padding: 3px 10px;
+      border-radius: 20px;
+      background: rgba(0, 180, 216, 0.1);
+      border: 1px solid rgba(0, 180, 216, 0.25);
+      color: var(--cyan2);
+    }
+
+    /* Diferencia RAM vs Disco */
+    .comparison-table {
+      max-width: 1100px;
+      margin: 36px auto 0;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      backdrop-filter: blur(18px);
+    }
+
+    .ct-header {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      background: rgba(0, 180, 216, 0.07);
+      border-bottom: 1px solid var(--border);
+      padding: 0;
+    }
+
+    .ct-header div {
+      font-family: var(--font-display);
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--cyan);
+      padding: 16px 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .ct-header div:last-child { border-right: none; }
+
+    .ct-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      border-bottom: 1px solid var(--border);
+      transition: background 0.2s;
+    }
+
+    .ct-row:last-child { border-bottom: none; }
+    .ct-row:hover { background: rgba(0, 180, 216, 0.04); }
+
+    .ct-row div {
+      padding: 14px 20px;
+      font-size: 0.85rem;
+      border-right: 1px solid var(--border);
+    }
+
+    .ct-row div:first-child { color: var(--text-muted); font-family: var(--font-tech); letter-spacing: 1px; }
+    .ct-row div:nth-child(2) { color: var(--cyan2); }
+    .ct-row div:nth-child(3) { color: var(--purple2); border-right: none; }
+
+    /* ============================================================
+       FOOTER
+    ============================================================ */
+    footer {
+      position: relative;
+      z-index: 10;
+      text-align: center;
+      padding: 40px 20px;
+      border-top: 1px solid var(--border);
+      color: var(--text-muted);
+      font-family: var(--font-tech);
+      font-size: 0.8rem;
+      letter-spacing: 2px;
+    }
+
+    footer span { color: var(--cyan2); }
+
+    /* ============================================================
+       ANIMACIONES GLOBALES DE ENTRADA
+    ============================================================ */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(22px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Clase de reveal on scroll */
+    .reveal {
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.7s ease, transform 0.7s ease;
+    }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    /* ============================================================
+       LÍNEAS DE CONEXIÓN SVG
+    ============================================================ */
+    #connection-lines {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 8;
+    }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 768px) {
+      .stage-row {
+        grid-template-columns: 40px 1fr;
+      }
+
+      .stage-row .stage-center { grid-column: 1; }
+      .component-card { grid-column: 2; }
+
+      .control-panel { grid-template-columns: 1fr; }
+
+      .ct-header, .ct-row {
+        grid-template-columns: 1fr;
+      }
+
+      .ct-header div, .ct-row div {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+      }
+    }
+
+    /* ============================================================
+       MODAL DE ETAPA (info expandida)
+    ============================================================ */
+    #stage-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 9, 23, 0.85);
+      backdrop-filter: blur(8px);
+    }
+
+    #stage-modal.open { display: flex; }
+
+    .modal-box {
+      background: var(--bg-panel);
+      border: 1px solid var(--border-glow);
+      border-radius: 22px;
+      padding: 36px 40px;
+      max-width: 520px;
+      width: 90%;
+      box-shadow: 0 0 80px rgba(0, 200, 255, 0.15);
+      animation: fadeDown 0.35s ease;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 20px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: color 0.2s;
+      background: none;
+      border: none;
+    }
+
+    .modal-close:hover { color: var(--cyan); }
+
+    .modal-icon { font-size: 2.8rem; margin-bottom: 14px; display: block; }
+    .modal-title { font-family: var(--font-display); font-size: 1.1rem; color: var(--cyan); margin-bottom: 12px; }
+    .modal-body  { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.75; }
+  </style>
+</head>
+<body>
+
+  <!-- ============================================================
+       CANVAS DE FONDO — Partículas tecnológicas
+  ============================================================ -->
+  <canvas id="canvas-bg"></canvas>
+
+  <!-- ============================================================
+       SVG LÍNEAS DE CONEXIÓN
+  ============================================================ -->
+  <svg id="connection-lines"></svg>
+
+  <!-- ============================================================
+       PAQUETE DE DATOS — Se mueve entre componentes
+  ============================================================ -->
+  <div id="data-packet"></div>
+
+  <!-- ============================================================
+       MODAL DE INFORMACIÓN DE ETAPA
+  ============================================================ -->
+  <div id="stage-modal">
+    <div class="modal-box">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <span class="modal-icon" id="modal-icon"></span>
+      <div class="modal-title" id="modal-title"></div>
+      <div class="modal-body" id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- ============================================================
+       PORTADA HERO
+       HARDWARE CONCEPT: Presentación del sistema completo
+  ============================================================ -->
+  <section id="hero">
+    <div class="badge-asignatura">Arquitectura de Computadoras • Ingeniería en Sistemas</div>
+
+    <h1 class="hero-title">
+      <span class="line1">Hardware &amp; Software<br />de Entrada / Salida</span>
+      <span class="line2">Principios y Simulación Interactiva</span>
+    </h1>
+
+    <p class="hero-sub">
+      Explora el flujo completo de información desde un periférico de entrada
+      hasta el almacenamiento permanente en disco, paso a paso, en tiempo real.
+    </p>
+
+    <!-- Autores del proyecto -->
+    <div class="authors-row">
+      <div class="author-card">
+        <div class="author-avatar">EF</div>
+        <div class="author-info">
+          <div class="author-name">Euclides Favid</div>
+          <div class="author-role">Investigador / Desarrollador</div>
+        </div>
+      </div>
+      <div class="author-card">
+        <div class="author-avatar">JC</div>
+        <div class="author-info">
+          <div class="author-name">Jean Carlos</div>
+          <div class="author-role">Investigador / Diseñador</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Botón principal — inicia la simulación -->
+    <button class="btn-start" onclick="iniciarSimulacion()">
+      Iniciar Simulación
+      <span class="btn-arrow">→</span>
+    </button>
+
+    <div class="scroll-hint" onclick="document.getElementById('simulacion').scrollIntoView({behavior:'smooth'})">
+      EXPLORAR
+    </div>
+  </section>
+
+  <!-- ============================================================
+       SECCIÓN DE SIMULACIÓN INTERACTIVA
+  ============================================================ -->
+  <section id="simulacion">
+    <div class="section-header reveal">
+      <div class="section-tag">▸ Simulación en Tiempo Real</div>
+      <h2 class="section-title">Flujo de Datos E/S</h2>
+    </div>
+
+    <!-- Selector de periférico de entrada -->
+    <!-- HARDWARE CONCEPT: Dispositivos Periféricos de Entrada -->
+    <div class="periph-selector reveal">
+      <button class="periph-btn active" data-periph="Teclado" onclick="seleccionarPeriferico(this)">
+        <span class="p-icon">⌨️</span> Teclado
+      </button>
+      <button class="periph-btn" data-periph="Ratón" onclick="seleccionarPeriferico(this)">
+        <span class="p-icon">🖱️</span> Ratón
+      </button>
+      <button class="periph-btn" data-periph="Micrófono" onclick="seleccionarPeriferico(this)">
+        <span class="p-icon">🎙️</span> Micrófono
+      </button>
+      <button class="periph-btn" data-periph="Escáner" onclick="seleccionarPeriferico(this)">
+        <span class="p-icon">🖨️</span> Escáner
+      </button>
+      <button class="periph-btn" data-periph="Cámara Web" onclick="seleccionarPeriferico(this)">
+        <span class="p-icon">📷</span> Cámara Web
+      </button>
+    </div>
+
+    <!-- Panel de control -->
+    <div class="control-panel reveal">
+      <div class="ctrl-left">
+        <div class="ctrl-label">Estado del sistema</div>
+        <div class="ctrl-value" id="ctrl-estado">⬤ ESPERANDO ENTRADA</div>
+      </div>
+      <div class="ctrl-left">
+        <div class="ctrl-label">Dispositivo activo</div>
+        <div class="ctrl-value" id="ctrl-dispositivo">— Ninguno —</div>
+      </div>
+      <div class="ctrl-left">
+        <div class="ctrl-label">Datos procesados</div>
+        <div class="ctrl-value" id="ctrl-datos">0 bytes</div>
+      </div>
+      <button class="btn-start" style="font-size:0.75rem;padding:12px 30px;" onclick="iniciarSimulacion()">
+        ▶ INICIAR
+      </button>
+    </div>
+
+    <!-- Barra de progreso global -->
+    <div class="progress-bar-wrapper reveal" style="max-width:1100px;margin:0 auto 24px;">
+      <div class="progress-bar-inner" id="progress-bar"></div>
+    </div>
+
+    <!-- ============================================================
+         PIPELINE PRINCIPAL
+         Cada .component-card = un componente del sistema de E/S
+    ============================================================ -->
+    <div class="pipeline-wrapper reveal">
+      <div class="pipeline-stages" id="pipeline">
+
+        <!-- ────────────────────────────────────────────────────────
+             ETAPA 1: PERIFÉRICO DE ENTRADA
+             HARDWARE CONCEPT: Dispositivo que captura información
+                               del mundo físico y la convierte en
+                               señales eléctricas digitales.
+        ──────────────────────────────────────────────────────── -->
+        <div class="stage-row" id="stage-0">
+          <div class="component-card" data-step="0" onclick="openModal(0)">
+            <div class="comp-icon">⌨️</div>
+            <div class="comp-info">
+              <div class="comp-label">Hardware · Entrada</div>
+              <div class="comp-name" id="comp-name-0">Periférico de Entrada</div>
+              <div class="comp-msg" id="comp-msg-0">Esperando señal del usuario...</div>
+            </div>
+            <div class="comp-status" id="comp-status-0">IDLE</div>
+          </div>
+          <div class="stage-center">
+            <div class="pipeline-node" id="node-0"></div>
+            <div class="stage-arrow" id="arrow-0"></div>
+          </div>
+          <div></div>
+        </div>
+
+        <!-- ────────────────────────────────────────────────────────
+             ETAPA 2: CONTROLADOR DE E/S
+             HARDWARE CONCEPT: Circuito que traduce las señales del
+                               periférico al protocolo del sistema.
+                               Gestiona interrupciones y DMA.
+        ──────────────────────────────────────────────────────── -->
+        <div class="stage-row" id="stage-1">
+          <div></div>
+          <div class="stage-center">
+            <div class="pipeline-node" id="node-1"></div>
+            <div class="stage-arrow" id="arrow-1"></div>
+          </div>
+          <div class="component-card" data-step="1" onclick="openModal(1)" style="grid-column:3">
+            <div class="comp-icon">🔌</div>
+            <div class="comp-info">
+              <div class="comp-label">Hardware · Interfaz</div>
+              <div class="comp-name">Controlador de E/S</div>
+              <div class="comp-msg" id="comp-msg-1">En espera de señal...</div>
+            </div>
+            <div class="comp-status" id="comp-status-1">IDLE</div>
+          </div>
+        </div>
+
+        <!-- ────────────────────────────────────────────────────────
+             ETAPA 3: BUS DEL SISTEMA
+             HARDWARE CONCEPT: Canal de comunicación compartido
+                               (address bus + data bus + control bus).
+        ──────────────────────────────────────────────────────── -->
+        <div class="stage-row" id="stage-2">
+          <div class="component-card" data-step="2" onclick="openModal(2)">
+            <div class="comp-icon">🔄</div>
+            <div class="comp-info">
+              <div class="comp-label">Hardware · Bus</div>
+              <div class="comp-name">Bus del Sistema</div>
+              <div class="comp-msg" id="comp-msg-2">Bus en reposo...</div>
+            </div>
+            <div class="comp-status" id="comp-status-2">IDLE</div>
+          </div>
+          <div class="stage-center">
+            <div class="pipeline-node" id="node-2"></div>
+            <div class="stage-arrow" id="arrow-2"></div>
+          </div>
+          <div></div>
+        </div>
+
+        <!-- ────────────────────────────────────────────────────────
+             ETAPA 4: CPU
+             HARDWARE CONCEPT: Unidad Central de Procesamiento.
+             SOFTWARE CONCEPT: Ejecuta instrucciones del S.O.
+        ──────────────────────────────────────────────────────── -->
+        <div class="stage-row" id="stage-3">
+          <div></div>
+          <div class="stage-center">
+            <div class="pipeline-node" id="node-3"></div>
+            <div class="stage-arrow" id="arrow-3"></div>
+          </div>
+          <div class="component-card" data-step="3" onclick="openModal(3)" style="grid-column:3">
+            <div class="comp-icon">⚡</div>
+            <div class="comp-info">
+              <div class="comp-label">Hardware · Procesador</div>
+              <div class="comp-name">CPU — Unidad Central</div>
+              <div class="comp-msg" id="comp-msg-3">Núcleos en standby...</div>
+            </div>
+            <div class="comp-status" id="comp-status-3">IDLE</div>
+          </div>
+        </div>
+
+        <!-- ────────────────────────────────────────────────────────
+             ETAPA 5: MEMORIA RAM
+             HARDWARE CONCEPT: Memoria volátil de acceso aleatorio.
+             Almacenamiento temporal mientras se procesa la info.
+        ──────────────────────────────────────────────────────── -->
+        <div class="stage-row" id="stage-4">
+          <div class="component-card" data-step="4" onclick="openModal(4)">
+            <div class="comp-icon">💾</div>
+            <div class="comp-info">
+              <div class="comp-label">Hardware · Memoria Volátil</div>
+              <div class="comp-name">Memoria RAM</div>
+              <div class="comp-msg" id="comp-msg-4">Módulos disponibles...</div>
+            </div>
+            <div class="comp-status" id="comp-status-4">IDLE</div>
+          </div>
+          <div class="stage-center">
+            <div class="pipeline-node" id="node-4"></div>
+            <div class="stage-arrow" id="arrow-4"></div>
+          </div>
+          <div></div>
+        </div>
+
+        <!-- ────────────────────────────────────────────────────────
+             ETAPA 6: SISTEMA OPERATIVO
+             SOFTWARE CONCEPT: Capa de software que gestiona todos
+                               los recursos del hardware y provee
+                               servicios al usuario y aplicaciones.
+        ──────────────────────────────────────────────────────── -->
+        <div class="stage-row" id="stage-5">
+          <div></div>
+          <div class="stage-center">
+            <div class="pipeline-node" id="node-5"></div>
+            <div class="stage-arrow" id="arrow-5"></div>
+          </div>
+          <div class="component-card" data-step="5" onclick="openModal(5)" style="grid-column:3">
+            <div class="comp-icon">🖥️</div>
+            <div class="comp-info">
+              <div class="comp-label">Software · S.O. Kernel</div>
+              <div class="comp-name">Sistema Operativo</div>
+              <div class="comp-msg" id="comp-msg-5">Kernel en modo espera...</div>
+            </div>
+            <div class="comp-status" id="comp-status-5">IDLE</div>
+          </div>
+        </div>
+
+        <!-- ────────────────────────────────────────────────────────
+             ETAPA 7: CONTROLADOR DE DISCO
+             HARDWARE CONCEPT: Interfaz entre el S.O. y el disco.
+             Maneja comandos ATA/SATA/NVMe.
+        ──────────────────────────────────────────────────────── -->
+        <div class="stage-row" id="stage-6">
+          <div class="component-card" data-step="6" onclick="openModal(6)">
+            <div class="comp-icon">📡</div>
+            <div class="comp-info">
+              <div class="comp-label">Hardware · Interfaz Disco</div>
+              <div class="comp-name">Controlador de Disco</div>
+              <div class="comp-msg" id="comp-msg-6">Esperando comando...</div>
+            </div>
+            <div class="comp-status" id="comp-status-6">IDLE</div>
+          </div>
+          <div class="stage-center">
+            <div class="pipeline-node" id="node-6"></div>
+            <div class="stage-arrow" id="arrow-6"></div>
+          </div>
+          <div></div>
+        </div>
+
+        <!-- ────────────────────────────────────────────────────────
+             ETAPA 8: DISCO DURO / ALMACENAMIENTO
+             HARDWARE CONCEPT: Almacenamiento no volátil permanente.
+             Puede ser HDD (magnético) o SSD (flash NAND).
+        ──────────────────────────────────────────────────────── -->
+        <div class="stage-row" id="stage-7">
+          <div></div>
+          <div class="stage-center">
+            <div class="pipeline-node" id="node-7"></div>
+          </div>
+          <div class="component-card" data-step="7" onclick="openModal(7)" style="grid-column:3">
+            <div class="comp-icon">🗄️</div>
+            <div class="comp-info">
+              <div class="comp-label">Hardware · Almacenamiento</div>
+              <div class="comp-name">Disco Duro / SSD</div>
+              <div class="comp-msg" id="comp-msg-7">Platos en reposo...</div>
+            </div>
+            <div class="comp-status" id="comp-status-7">IDLE</div>
+          </div>
+        </div>
+
+      </div><!-- /pipeline-stages -->
+    </div><!-- /pipeline-wrapper -->
+
+    <!-- Panel de estadísticas en tiempo real -->
+    <div class="stats-panel reveal">
+      <div class="stat-card">
+        <div class="stat-icon">🔢</div>
+        <div class="stat-label">Etapa Actual</div>
+        <div class="stat-value" id="stat-etapa">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📦</div>
+        <div class="stat-label">Bytes Procesados</div>
+        <div class="stat-value" id="stat-bytes">0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">⏱️</div>
+        <div class="stat-label">Tiempo (seg)</div>
+        <div class="stat-value" id="stat-tiempo">0.0</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">📶</div>
+        <div class="stat-label">Progreso</div>
+        <div class="stat-value" id="stat-pct">0%</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🌡️</div>
+        <div class="stat-label">Ciclos CPU</div>
+        <div class="stat-value" id="stat-cycles">0</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- ============================================================
+       SECCIÓN ACADÉMICA
+       Explicación detallada de cada concepto
+  ============================================================ -->
+  <section id="academico">
+    <div class="section-header reveal">
+      <div class="section-tag">▸ Contenido Académico</div>
+      <h2 class="section-title">Fundamentos del Sistema de E/S</h2>
+    </div>
+
+    <div class="academic-grid">
+
+      <!-- Periféricos de Entrada -->
+      <div class="acad-card reveal">
+        <span class="acad-icon">⌨️</span>
+        <div class="acad-title">Periféricos de Entrada</div>
+        <div class="acad-body">
+          Los <strong>periféricos de entrada</strong> son dispositivos de hardware que permiten al usuario
+          o al entorno introducir datos e instrucciones al sistema computacional.
+          Convierten información del mundo físico (presión, movimiento, sonido, luz)
+          en señales eléctricas digitales interpretables por la CPU.
+          <div class="acad-examples">
+            <div class="ex-label">Ejemplos comunes</div>
+            <div class="ex-tags">
+              <span class="ex-tag">⌨️ Teclado</span>
+              <span class="ex-tag">🖱️ Ratón</span>
+              <span class="ex-tag">🎙️ Micrófono</span>
+              <span class="ex-tag">📷 Cámara Web</span>
+              <span class="ex-tag">🖨️ Escáner</span>
+              <span class="ex-tag">🕹️ Gamepad</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Controlador de E/S -->
+      <div class="acad-card reveal">
+        <span class="acad-icon">🔌</span>
+        <div class="acad-title">Controlador de E/S</div>
+        <div class="acad-body">
+          El <strong>controlador de E/S</strong> (I/O Controller) es un circuito integrado especializado
+          que actúa como intermediario entre el periférico y el bus del sistema.
+          Se encarga de:
+          <ul style="margin:10px 0 0 16px;color:var(--text-secondary)">
+            <li>Gestionar <strong>interrupciones (IRQ)</strong></li>
+            <li>Administrar el <strong>Acceso Directo a Memoria (DMA)</strong></li>
+            <li>Convertir protocolos de comunicación</li>
+            <li>Controlar el flujo de datos y timing</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Bus del Sistema -->
+      <div class="acad-card reveal">
+        <span class="acad-icon">🔄</span>
+        <div class="acad-title">Bus del Sistema</div>
+        <div class="acad-body">
+          El <strong>bus del sistema</strong> es el canal de comunicación compartido que conecta
+          todos los componentes del computador. Está formado por tres buses lógicos:
+          <ul style="margin:10px 0 0 16px;color:var(--text-secondary)">
+            <li><strong>Bus de Datos</strong>: transfiere los datos (8–64 bits)</li>
+            <li><strong>Bus de Direcciones</strong>: indica la ubicación en memoria</li>
+            <li><strong>Bus de Control</strong>: coordina lectura/escritura y sincronización</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- CPU -->
+      <div class="acad-card reveal">
+        <span class="acad-icon">⚡</span>
+        <div class="acad-title">CPU — Unidad Central de Procesamiento</div>
+        <div class="acad-body">
+          La <strong>CPU</strong> es el cerebro del sistema. Recibe las señales de interrupción del
+          controlador de E/S, suspende temporalmente su tarea actual y ejecuta el
+          <strong>manejador de interrupciones (ISR)</strong> del Sistema Operativo.
+          Ciclo de operación:
+          <ul style="margin:10px 0 0 16px;color:var(--text-secondary)">
+            <li>Fetch → Decode → Execute → Writeback</li>
+            <li>Gestión de interrupciones hardware</li>
+            <li>Llamadas al sistema (syscalls)</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Memoria RAM -->
+      <div class="acad-card reveal">
+        <span class="acad-icon">💾</span>
+        <div class="acad-title">Memoria RAM</div>
+        <div class="acad-body">
+          La <strong>RAM</strong> (Random Access Memory) es la memoria principal de trabajo del sistema.
+          Almacena temporalmente los datos mientras son procesados por la CPU.
+          Características clave:
+          <ul style="margin:10px 0 0 16px;color:var(--text-secondary)">
+            <li><strong>Volátil</strong>: pierde datos al apagar el equipo</li>
+            <li><strong>Rápida</strong>: acceso en nanosegundos</li>
+            <li>Los datos de E/S se almacenan en <strong>buffers en RAM</strong></li>
+            <li>El S.O. gestiona el espacio mediante paginación</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Sistema Operativo -->
+      <div class="acad-card reveal">
+        <span class="acad-icon">🖥️</span>
+        <div class="acad-title">Sistema Operativo</div>
+        <div class="acad-body">
+          El <strong>S.O.</strong> es la capa de software que gestiona todos los recursos hardware.
+          En el contexto de E/S, el kernel:
+          <ul style="margin:10px 0 0 16px;color:var(--text-secondary)">
+            <li>Recibe la interrupción y ejecuta el <strong>driver</strong> del dispositivo</li>
+            <li>Transfiere datos del buffer del controlador a la RAM</li>
+            <li>Decide si los datos deben persistirse en disco</li>
+            <li>Proporciona API de E/S (read(), write(), ioctl())</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Controlador de Disco -->
+      <div class="acad-card reveal">
+        <span class="acad-icon">📡</span>
+        <div class="acad-title">Controlador de Disco</div>
+        <div class="acad-body">
+          El <strong>controlador de disco</strong> gestiona la comunicación entre el S.O. y el disco físico.
+          Maneja protocolos estándar:
+          <div class="acad-examples">
+            <div class="ex-label">Interfaces</div>
+            <div class="ex-tags">
+              <span class="ex-tag">SATA III</span>
+              <span class="ex-tag">NVMe / PCIe</span>
+              <span class="ex-tag">SAS</span>
+              <span class="ex-tag">ATA</span>
+            </div>
+          </div>
+          Traduce comandos lógicos del S.O. (leer sector X) en
+          comandos físicos para los actuadores del disco.
+        </div>
+      </div>
+
+      <!-- Disco Duro -->
+      <div class="acad-card reveal">
+        <span class="acad-icon">🗄️</span>
+        <div class="acad-title">Disco Duro / SSD</div>
+        <div class="acad-body">
+          El <strong>almacenamiento permanente</strong> conserva los datos incluso sin energía.
+          Dos tecnologías principales:
+          <ul style="margin:10px 0 0 16px;color:var(--text-secondary)">
+            <li><strong>HDD</strong>: platos magnéticos, cabezal físico, ~100 MB/s</li>
+            <li><strong>SSD</strong>: memoria flash NAND, sin partes móviles, ~550 MB/s</li>
+            <li><strong>NVMe SSD</strong>: conexión PCIe directa, hasta 7 GB/s</li>
+          </ul>
+          El sistema de archivos (NTFS, ext4, APFS) organiza los datos en el disco.
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Tabla comparativa RAM vs Disco -->
+    <div class="comparison-table reveal" style="margin-top:48px;">
+      <div class="ct-header">
+        <div>Característica</div>
+        <div>💾 Memoria RAM</div>
+        <div>🗄️ Disco Duro / SSD</div>
+      </div>
+      <div class="ct-row">
+        <div>Volatilidad</div>
+        <div>Volátil (pierde datos)</div>
+        <div>No volátil (permanente)</div>
+      </div>
+      <div class="ct-row">
+        <div>Velocidad acceso</div>
+        <div>~10–50 ns</div>
+        <div>HDD: ~5–10 ms · SSD: ~0.1 ms</div>
+      </div>
+      <div class="ct-row">
+        <div>Capacidad típica</div>
+        <div>8 – 128 GB</div>
+        <div>256 GB – 20 TB</div>
+      </div>
+      <div class="ct-row">
+        <div>Función</div>
+        <div>Trabajo activo de la CPU</div>
+        <div>Almacenamiento persistente</div>
+      </div>
+      <div class="ct-row">
+        <div>Precio por GB</div>
+        <div>Alto (~$5–10 USD)</div>
+        <div>Bajo (~$0.03–0.10 USD)</div>
+      </div>
+      <div class="ct-row">
+        <div>Tecnología</div>
+        <div>DRAM / LPDDR</div>
+        <div>Magnético / Flash NAND</div>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Footer -->
+  <footer>
+    <div>Proyecto Académico · Principios de Hardware y Software de E/S</div>
+    <div style="margin-top:8px;">
+      <span>Euclides Favid</span> &nbsp;&amp;&nbsp; <span>Jean Carlos</span>
+      &nbsp;·&nbsp; Facultad de Ingeniería en Sistemas
+    </div>
+  </footer>
+
+  <!-- ============================================================
+       JAVASCRIPT — Lógica de simulación y animaciones
+  ============================================================ -->
+  <script>
+    /* ============================================================
+       CANVAS DE PARTÍCULAS — Fondo tecnológico animado
+    ============================================================ */
+    (function initParticles() {
+      const canvas = document.getElementById('canvas-bg');
+      const ctx = canvas.getContext('2d');
+      let W, H, particles = [], stars = [];
+
+      function resize() {
+        W = canvas.width  = window.innerWidth;
+        H = canvas.height = window.innerHeight;
+      }
+      resize();
+      window.addEventListener('resize', resize);
+
+      /* Crear partículas flotantes */
+      for (let i = 0; i < 70; i++) {
+        particles.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          r: Math.random() * 1.5 + 0.4,
+          vx: (Math.random() - 0.5) * 0.3,
+          vy: (Math.random() - 0.5) * 0.3,
+          alpha: Math.random() * 0.5 + 0.1
+        });
+      }
+
+      /* Estrellas estáticas */
+      for (let i = 0; i < 120; i++) {
+        stars.push({
+          x: Math.random() * window.innerWidth,
+          y: Math.random() * window.innerHeight,
+          r: Math.random() * 0.8 + 0.2,
+          alpha: Math.random() * 0.4 + 0.1
+        });
+      }
+
+      function draw() {
+        ctx.clearRect(0, 0, W, H);
+
+        /* Grid tecnológico */
+        ctx.strokeStyle = 'rgba(0, 180, 216, 0.04)';
+        ctx.lineWidth = 1;
+        const gridSize = 60;
+        for (let x = 0; x < W; x += gridSize) {
+          ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+        }
+        for (let y = 0; y < H; y += gridSize) {
+          ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(W, y); ctx.stroke();
+        }
+
+        /* Estrellas */
+        stars.forEach(s => {
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(200, 230, 255, ${s.alpha})`;
+          ctx.fill();
+        });
+
+        /* Partículas animadas con conexiones */
+        particles.forEach(p => {
+          p.x += p.vx; p.y += p.vy;
+          if (p.x < 0 || p.x > W) p.vx *= -1;
+          if (p.y < 0 || p.y > H) p.vy *= -1;
+
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(0, 200, 255, ${p.alpha})`;
+          ctx.fill();
+        });
+
+        /* Líneas de conexión entre partículas cercanas */
+        for (let i = 0; i < particles.length; i++) {
+          for (let j = i + 1; j < particles.length; j++) {
+            const dx = particles[i].x - particles[j].x;
+            const dy = particles[i].y - particles[j].y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 110) {
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.strokeStyle = `rgba(0, 180, 216, ${0.1 * (1 - dist / 110)})`;
+              ctx.lineWidth = 0.6;
+              ctx.stroke();
+            }
+          }
+        }
+
+        requestAnimationFrame(draw);
+      }
+      draw();
+    })();
+
+    /* ============================================================
+       DATOS DE INFORMACIÓN POR ETAPA
+       (para el modal y los mensajes del pipeline)
+    ============================================================ */
+    const stageData = [
+      {
+        icon: '⌨️',
+        name: 'Periférico de Entrada',
+        label: 'Hardware · Dispositivo físico',
+        activeMsgs: [
+          'Detectando pulsación de tecla...',
+          'Generando código de exploración (scan code)...',
+          'Señal eléctrica enviada al controlador ✓'
+        ],
+        doneMsg: 'Señal transmitida → Controlador de E/S ✓',
+        statusActive: 'ACTIVO',
+        statusDone: 'COMPLETADO',
+        modal: `<b>Periférico de Entrada</b><br><br>
+          Dispositivo hardware que captura información del mundo físico y la
+          convierte en señales digitales. Al presionar una tecla, el circuito
+          genera un código de exploración (scan code) que identifica la tecla
+          presionada. Este código se envía al controlador de teclado (8042 o
+          equivalente) mediante el protocolo PS/2 o USB.<br><br>
+          <b>Función principal:</b> Transducción física → digital.`
+      },
+      {
+        icon: '🔌',
+        name: 'Controlador de E/S',
+        label: 'Hardware · Interfaz',
+        activeMsgs: [
+          'Recibiendo scan code del periférico...',
+          'Generando señal de interrupción IRQ1...',
+          'Datos almacenados en buffer del controlador ✓'
+        ],
+        doneMsg: 'IRQ generada → Datos en buffer → Bus del Sistema ✓',
+        statusActive: 'IRQ',
+        statusDone: 'OK',
+        modal: `<b>Controlador de E/S</b><br><br>
+          Circuito integrado que actúa como intermediario entre el periférico
+          y el bus del sistema. Cuando detecta datos del periférico, genera
+          una <b>interrupción hardware (IRQ)</b> para notificar a la CPU.<br><br>
+          Puede usar <b>DMA (Direct Memory Access)</b> para transferir datos
+          directamente a la RAM sin involucrar a la CPU en cada byte,
+          mejorando el rendimiento del sistema.`
+      },
+      {
+        icon: '🔄',
+        name: 'Bus del Sistema',
+        label: 'Hardware · Canal de datos',
+        activeMsgs: [
+          'Bus de control activado...',
+          'Bus de datos: transfiriendo 8 bits...',
+          'Bus de direcciones apuntando a CPU ✓'
+        ],
+        doneMsg: 'Datos transmitidos al procesador ✓',
+        statusActive: 'TX',
+        statusDone: 'OK',
+        modal: `<b>Bus del Sistema</b><br><br>
+          Canal de comunicación compartido que conecta CPU, RAM y controladores
+          de E/S. Compuesto por tres buses lógicos:<br><br>
+          • <b>Bus de Datos</b>: transfiere los datos (8 a 64 bits de ancho)<br>
+          • <b>Bus de Direcciones</b>: indica la ubicación de memoria destino<br>
+          • <b>Bus de Control</b>: coordina lectura, escritura y sincronización<br><br>
+          La velocidad del bus (frecuencia + ancho) determina el ancho de banda total.`
+      },
+      {
+        icon: '⚡',
+        name: 'CPU',
+        label: 'Hardware · Procesador',
+        activeMsgs: [
+          'Recibiendo interrupción IRQ1...',
+          'Suspendiendo proceso actual (context switch)...',
+          'Ejecutando ISR del driver de teclado ✓'
+        ],
+        doneMsg: 'ISR completado → Datos en RAM ✓',
+        statusActive: 'ISR',
+        statusDone: 'DONE',
+        modal: `<b>CPU — Unidad Central de Procesamiento</b><br><br>
+          Al recibir la interrupción del controlador, la CPU:<br><br>
+          1. <b>Suspende</b> el proceso actual (guarda el contexto)<br>
+          2. <b>Identifica</b> el origen de la interrupción (IRQ1 = teclado)<br>
+          3. <b>Ejecuta</b> el manejador de interrupciones (ISR) del driver<br>
+          4. <b>Lee</b> el dato del buffer del controlador<br>
+          5. <b>Restaura</b> el proceso interrumpido<br><br>
+          Ciclo: Fetch → Decode → Execute → Writeback.`
+      },
+      {
+        icon: '💾',
+        name: 'Memoria RAM',
+        label: 'Hardware · Memoria volátil',
+        activeMsgs: [
+          'Asignando buffer en espacio de kernel...',
+          'Escribiendo dato en dirección 0xFFFF...',
+          'Buffer del sistema operativo actualizado ✓'
+        ],
+        doneMsg: 'Datos en RAM → S.O. notificado ✓',
+        statusActive: 'WRITE',
+        statusDone: 'OK',
+        modal: `<b>Memoria RAM</b><br><br>
+          La CPU almacena el dato recibido en un <b>buffer en la RAM</b>,
+          en el espacio de memoria del kernel. La RAM es:<br><br>
+          • <b>Volátil</b>: pierde su contenido al cortar la energía<br>
+          • <b>Rápida</b>: acceso en nanosegundos (DDR5: ~20 ns)<br>
+          • <b>Direccionable</b>: cada byte tiene una dirección única<br><br>
+          El S.O. usa <b>paginación</b> para gestionar el espacio de RAM
+          entre todos los procesos activos.`
+      },
+      {
+        icon: '🖥️',
+        name: 'Sistema Operativo',
+        label: 'Software · Kernel',
+        activeMsgs: [
+          'Kernel recibe notificación del driver...',
+          'Procesando datos con el subsistema de E/S...',
+          'Decidiendo persistencia en disco ✓'
+        ],
+        doneMsg: 'S.O. ordena escritura → Controlador de Disco ✓',
+        statusActive: 'PROC',
+        statusDone: 'OK',
+        modal: `<b>Sistema Operativo</b><br><br>
+          El kernel del S.O. actúa como gestor de todos los recursos.
+          En el flujo de E/S:<br><br>
+          • Recibe el dato del <b>driver del dispositivo</b><br>
+          • Lo procesa con el <b>subsistema de E/S</b> (VFS, colas de E/S)<br>
+          • Decide si debe almacenarse permanentemente en disco<br>
+          • Emite una <b>llamada al sistema</b> (write()) para escribir<br><br>
+          El S.O. también gestiona colas de disco para optimizar el acceso.`
+      },
+      {
+        icon: '📡',
+        name: 'Controlador de Disco',
+        label: 'Hardware · Interfaz disco',
+        activeMsgs: [
+          'Recibiendo comando de escritura del S.O....',
+          'Traduciendo LBA a coordenadas físicas...',
+          'Enviando comando al disco por SATA/NVMe ✓'
+        ],
+        doneMsg: 'Comando enviado → Disco Duro ✓',
+        statusActive: 'CMD',
+        statusDone: 'OK',
+        modal: `<b>Controlador de Disco</b><br><br>
+          Traduce los comandos lógicos del S.O. (escribir en bloque LBA X)
+          a comandos físicos entendibles por el disco:<br><br>
+          • <b>SATA III</b>: hasta 600 MB/s, protocolo ATA<br>
+          • <b>NVMe/PCIe</b>: hasta 7 GB/s, latencia ultra baja<br>
+          • <b>SAS</b>: uso empresarial, alta confiabilidad<br><br>
+          Incluye caché interno para agrupar escrituras y mejorar rendimiento.`
+      },
+      {
+        icon: '🗄️',
+        name: 'Disco Duro / SSD',
+        label: 'Hardware · Almacenamiento',
+        activeMsgs: [
+          'Posicionando cabezal en sector destino...',
+          'Escribiendo datos en sector magnético/NAND...',
+          '¡Datos almacenados permanentemente! ✓'
+        ],
+        doneMsg: '✅ ALMACENAMIENTO COMPLETADO — Datos persistidos',
+        statusActive: 'WRITE',
+        statusDone: '✅ DONE',
+        modal: `<b>Disco Duro / SSD — Almacenamiento Permanente</b><br><br>
+          El destino final del dato. A diferencia de la RAM, los datos
+          permanecen aunque el equipo se apague:<br><br>
+          • <b>HDD</b>: platos magnéticos + cabezal físico, ~100 MB/s<br>
+          • <b>SSD SATA</b>: chips NAND Flash, ~550 MB/s<br>
+          • <b>NVMe SSD</b>: conexión PCIe directa, hasta 7 GB/s<br><br>
+          El sistema de archivos (NTFS, ext4, APFS) organiza y rastrea
+          la ubicación de cada archivo en el disco.`
+      }
+    ];
+
+    /* ============================================================
+       ESTADO GLOBAL DE LA SIMULACIÓN
+    ============================================================ */
+    let simRunning    = false;    // ¿Está corriendo la simulación?
+    let simTimer      = null;     // Timer del reloj
+    let simStartTime  = 0;        // Timestamp de inicio
+    let currentStep   = -1;       // Etapa actual (-1 = sin iniciar)
+    let totalBytes    = 0;        // Bytes procesados acumulados
+    let cpuCycles     = 0;        // Ciclos CPU simulados
+    let selectedPeriph = 'Teclado'; // Periférico seleccionado
+
+    /* ============================================================
+       SELECTOR DE PERIFÉRICO
+    ============================================================ */
+    function seleccionarPeriferico(btn) {
+      document.querySelectorAll('.periph-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedPeriph = btn.dataset.periph;
+      /* Actualizar nombre del primer componente */
+      const nameEl = document.getElementById('comp-name-0');
+      if (nameEl) nameEl.textContent = selectedPeriph;
+    }
+
+    /* ============================================================
+       RELOJ EN TIEMPO REAL
+    ============================================================ */
+    function startClock() {
+      simStartTime = Date.now();
+      simTimer = setInterval(() => {
+        const elapsed = ((Date.now() - simStartTime) / 1000).toFixed(1);
+        document.getElementById('stat-tiempo').textContent = elapsed;
+        document.getElementById('ctrl-estado').textContent = '⬤ PROCESANDO...';
+      }, 100);
+    }
+
+    function stopClock() {
+      if (simTimer) { clearInterval(simTimer); simTimer = null; }
+    }
+
+    /* ============================================================
+       ACTUALIZAR ESTADÍSTICAS EN PANTALLA
+    ============================================================ */
+    function updateStats(step) {
+      const pct = Math.round(((step + 1) / stageData.length) * 100);
+      document.getElementById('stat-etapa').textContent  = stageData[step].name;
+      document.getElementById('stat-pct').textContent    = pct + '%';
+      document.getElementById('progress-bar').style.width = pct + '%';
+
+      /* Simular datos procesados */
+      totalBytes += Math.floor(Math.random() * 128 + 64);
+      cpuCycles  += Math.floor(Math.random() * 5000 + 1000);
+      document.getElementById('stat-bytes').textContent  = totalBytes + ' B';
+      document.getElementById('ctrl-datos').textContent  = totalBytes + ' bytes';
+      document.getElementById('stat-cycles').textContent = cpuCycles.toLocaleString();
+      document.getElementById('ctrl-dispositivo').textContent = selectedPeriph;
+    }
+
+    /* ============================================================
+       ACTIVAR ETAPA VISUAL
+    ============================================================ */
+    function activateStage(step) {
+      const card   = document.querySelector(`[data-step="${step}"]`);
+      const msg    = document.getElementById(`comp-msg-${step}`);
+      const status = document.getElementById(`comp-status-${step}`);
+      const node   = document.getElementById(`node-${step}`);
+
+      if (!card) return;
+
+      card.classList.remove('done');
+      card.classList.add('active');
+      status.textContent = stageData[step].statusActive;
+
+      /* Animar nodo del pipeline */
+      node.classList.add('active');
+
+      /* Iluminar flecha anterior */
+      if (step > 0) {
+        const prevArrow = document.getElementById(`arrow-${step - 1}`);
+        if (prevArrow) prevArrow.classList.add('lit');
+      }
+
+      /* Mensajes progresivos dentro de la tarjeta */
+      const msgs = stageData[step].activeMsgs;
+      let mi = 0;
+      msg.textContent = msgs[mi];
+      const msgInterval = setInterval(() => {
+        mi++;
+        if (mi < msgs.length) msg.textContent = msgs[mi];
+        else clearInterval(msgInterval);
+      }, 400);
+
+      updateStats(step);
+      animatePacketTo(card);
+    }
+
+    /* ============================================================
+       COMPLETAR ETAPA
+    ============================================================ */
+    function completeStage(step) {
+      const card   = document.querySelector(`[data-step="${step}"]`);
+      const msg    = document.getElementById(`comp-msg-${step}`);
+      const status = document.getElementById(`comp-status-${step}`);
+      const node   = document.getElementById(`node-${step}`);
+
+      if (!card) return;
+
+      card.classList.remove('active');
+      card.classList.add('done');
+      msg.textContent    = stageData[step].doneMsg;
+      status.textContent = stageData[step].statusDone;
+      node.classList.remove('active');
+      node.classList.add('done');
+    }
+
+    /* ============================================================
+       RESETEAR TODAS LAS ETAPAS
+    ============================================================ */
+    function resetPipeline() {
+      for (let i = 0; i < stageData.length; i++) {
+        const card   = document.querySelector(`[data-step="${i}"]`);
+        const msg    = document.getElementById(`comp-msg-${i}`);
+        const status = document.getElementById(`comp-status-${i}`);
+        const node   = document.getElementById(`node-${i}`);
+        const arrow  = document.getElementById(`arrow-${i}`);
+
+        if (card)   { card.classList.remove('active', 'done'); }
+        if (msg)    msg.textContent    = '—';
+        if (status) status.textContent = 'IDLE';
+        if (node)   node.classList.remove('active', 'done');
+        if (arrow)  arrow.classList.remove('lit');
+      }
+      /* Reset stats */
+      document.getElementById('stat-etapa').textContent   = '—';
+      document.getElementById('stat-pct').textContent     = '0%';
+      document.getElementById('stat-bytes').textContent   = '0';
+      document.getElementById('stat-tiempo').textContent  = '0.0';
+      document.getElementById('stat-cycles').textContent  = '0';
+      document.getElementById('ctrl-estado').textContent  = '⬤ ESPERANDO ENTRADA';
+      document.getElementById('ctrl-dispositivo').textContent = '— Ninguno —';
+      document.getElementById('ctrl-datos').textContent   = '0 bytes';
+      document.getElementById('progress-bar').style.width = '0%';
+      totalBytes = 0; cpuCycles = 0;
+    }
+
+    /* ============================================================
+       ANIMACIÓN DEL PAQUETE DE DATOS
+       Mueve el punto neón hacia la tarjeta destino
+    ============================================================ */
+    function animatePacketTo(targetCard) {
+      const packet = document.getElementById('data-packet');
+      const rect   = targetCard.getBoundingClientRect();
+      const cx     = rect.left + rect.width  / 2 - 14;
+      const cy     = rect.top  + rect.height / 2 - 14;
+
+      packet.style.display = 'block';
+      packet.style.left    = cx + 'px';
+      packet.style.top     = cy + 'px';
+
+      /* Dejar trail */
+      for (let i = 0; i < 6; i++) {
+        setTimeout(() => {
+          const trail = document.createElement('div');
+          trail.className = 'packet-trail';
+          trail.style.left = (cx + Math.random() * 20 - 10) + 'px';
+          trail.style.top  = (cy + Math.random() * 20 - 10) + 'px';
+          document.body.appendChild(trail);
+          setTimeout(() => trail.remove(), 700);
+        }, i * 80);
+      }
+    }
+
+    /* ============================================================
+       INICIAR SIMULACIÓN COMPLETA
+       Recorre cada etapa con delay progresivo
+    ============================================================ */
+    function iniciarSimulacion() {
+      if (simRunning) return;
+      simRunning = true;
+
+      /* Scroll a la sección de simulación */
+      document.getElementById('simulacion').scrollIntoView({ behavior: 'smooth' });
+
+      resetPipeline();
+      stopClock();
+      startClock();
+
+      const delay = 1500; /* ms entre etapas */
+
+      stageData.forEach((stage, i) => {
+        /* Activar etapa */
+        setTimeout(() => {
+          activateStage(i);
+        }, i * delay * 2);
+
+        /* Completar etapa */
+        setTimeout(() => {
+          completeStage(i);
+          if (i === stageData.length - 1) {
+            /* Simulación finalizada */
+            finalizarSimulacion();
+          }
+        }, i * delay * 2 + delay);
+      });
+    }
+
+    /* ============================================================
+       FINALIZAR SIMULACIÓN
+    ============================================================ */
+    function finalizarSimulacion() {
+      stopClock();
+      simRunning = false;
+
+      /* Ocultar paquete */
+      const packet = document.getElementById('data-packet');
+      setTimeout(() => { packet.style.display = 'none'; }, 500);
+
+      document.getElementById('ctrl-estado').textContent = '✅ ALMACENAMIENTO COMPLETADO';
+
+      /* Parpadeo final de éxito */
+      document.getElementById('progress-bar').style.background =
+        'linear-gradient(90deg, #00ff9d, #00e5ff)';
+    }
+
+    /* ============================================================
+       MODAL DE INFORMACIÓN DE ETAPA
+    ============================================================ */
+    function openModal(step) {
+      const data = stageData[step];
+      document.getElementById('modal-icon').textContent  = data.icon;
+      document.getElementById('modal-title').textContent = data.name + ' — ' + data.label;
+      document.getElementById('modal-body').innerHTML    = data.modal;
+      document.getElementById('stage-modal').classList.add('open');
+    }
+
+    function closeModal() {
+      document.getElementById('stage-modal').classList.remove('open');
+    }
+
+    /* Cerrar modal al hacer click fuera */
+    document.getElementById('stage-modal').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    /* ============================================================
+       REVEAL ON SCROLL — Animar elementos al entrar en viewport
+    ============================================================ */
+    (function initReveal() {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('visible');
+            observer.unobserve(entry.target);
+          }
+        });
+      }, { threshold: 0.12 });
+
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+    })();
+
+  </script>
+</body>
+</html>
